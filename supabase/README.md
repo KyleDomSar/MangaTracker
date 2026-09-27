@@ -18,3 +18,10 @@ The timeline database is intentionally separate from AniList:
 - User progress: remains separate from public timeline content.
 
 The local timeline repository is intentionally empty. It does not contain demo manga or hardcoded story data. When Supabase is configured, published timelines are loaded from the database.
+
+
+### Starter timeline data
+
+After running `timeline_schema.sql`, you can run `timeline_seed.sql` to populate starter timeline records for Solo Leveling, Tower of God, and Omniscient Reader.
+
+The seed is intentionally a starter dataset, not an exhaustive chapter-by-chapter database. It establishes the full Supabase data flow for arcs, events, characters, and locations without putting story content back into the React source.
