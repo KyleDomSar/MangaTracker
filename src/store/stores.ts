@@ -336,7 +336,6 @@ export const useSettingsStore = create<SettingsState>()(
     (set, get) => ({
       settings: {
         theme: 'dark',
-        spoilerProtection: true,
         defaultLibraryStatus: 'READING',
       },
       updateSettings: (newSettings) => {
