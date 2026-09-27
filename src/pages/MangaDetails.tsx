@@ -9,7 +9,7 @@ import { getChapterInfo } from '../api/mangabaka';
 import type { MangaDetail } from '../api/anilist';
 import { useLibraryStore, useProgressStore, useActivityStore, useSettingsStore, getLibraryStatusColor, getLibraryStatusLabel } from '../store/stores';
 import { Card, ProgressBar, Badge, LoadingSpinner, ErrorState } from '../components/UI';
-import type { SeriesTimeline } from '../data/timelineRepository';
+import type { SeriesTimeline } from '../models/types';
 import { supabaseTimelineRepository } from '../data/supabaseTimelineRepository';
 import type { LibraryStatus } from '../models/types';
 
