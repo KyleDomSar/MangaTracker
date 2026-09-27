@@ -64,7 +64,7 @@ export default function DashboardLayout() {
         {/* Footer */}
         <div className="p-4 border-t border-gray-800/50">
           <div className="px-4 py-3 rounded-xl bg-gray-800/30">
-            <p className="text-xs text-gray-500">ManhwaTimeline v1.0</p>
+            <p className="text-xs text-gray-500">MangaTracker v1.0</p>
             <p className="text-xs text-gray-600 mt-1">Your manga journey tracker</p>
           </div>
         </div>
