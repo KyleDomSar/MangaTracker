@@ -23,7 +23,6 @@ export default function TimelinePage() {
     if (seriesId) return;
 
     setIsLoadingTimelines(true);
-    if (seriesId) return;
 
     let cancelled = false;
 
