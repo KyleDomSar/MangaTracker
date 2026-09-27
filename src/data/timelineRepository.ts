@@ -8,10 +8,11 @@ import { DEMO_TIMELINE_DATA, type SeriesTimeline } from './mockTimelineData';
  * reading progress. The UI talks to this repository instead of importing the
  * underlying data source directly.
  *
- * Today the repository uses curated local data. A future Supabase/API
- * implementation can replace the provider below without changing Timeline,
- * MangaDetails, or the rest of the app.
+ * The local provider is intentionally empty. Supabase is the production source
+ * for curated story timeline content.
  */
+
+export type { SeriesTimeline } from './mockTimelineData';
 
 export interface TimelineRepository {
   getTimelineForSeries(seriesId: number): SeriesTimeline | null;
