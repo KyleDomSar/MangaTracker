@@ -85,8 +85,8 @@ export default function DashboardLayout() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 lg:ml-64 pb-20 lg:pb-0 pt-14 lg:pt-0">
-        <div className="max-w-7xl mx-auto p-4 lg:p-8">
+      <main className="flex-1 min-w-0 lg:flex-none lg:w-[calc(100%-16rem)] lg:ml-64 pb-20 lg:pb-0 pt-14 lg:pt-0 overflow-x-hidden">
+        <div className="w-full max-w-7xl mx-auto p-4 lg:p-8">
           <Outlet />
         </div>
       </main>
