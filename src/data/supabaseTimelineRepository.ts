@@ -1,5 +1,4 @@
-import type { Arc, StoryEvent, Character, Location } from '../models/types';
-import type { SeriesTimeline } from './timelineRepository';
+import type { Arc, StoryEvent, Character, Location, SeriesTimeline } from '../models/types';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 type TimelineRow = {
