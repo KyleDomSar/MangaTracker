@@ -77,7 +77,7 @@ export default function DashboardLayout() {
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center">
               <BookOpen size={16} className="text-white" />
             </div>
-            <h1 className="font-bold text-base text-white">ManhwaTimeline</h1>
+            <h1 className="font-bold text-base text-white">MangaTracker</h1>
           </div>
         </div>
       </header>
