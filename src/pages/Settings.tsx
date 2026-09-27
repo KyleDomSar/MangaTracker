@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Trash2, AlertTriangle, Info, Database, BookOpen, Activity, Shield } from 'lucide-react';
-import { useLibraryStore, useActivityStore, useSettingsStore } from '../store/stores';
+import { useLibraryStore, useActivityStore, useSettingsStore, getLibraryStatusLabel } from '../store/stores';
 import { Card } from '../components/UI';
 
 export default function SettingsPage() {
@@ -163,6 +163,27 @@ export default function SettingsPage() {
 
       {/* About */}
       <div>
+        <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Reading</h2>
+        <Card className="p-4">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h3 className="text-sm font-medium text-gray-200">Default Library Status</h3>
+              <p className="text-xs text-gray-500 mt-0.5">Status used when you add a new title from Manga Details.</p>
+            </div>
+            <select
+              value={settings.defaultLibraryStatus}
+              onChange={(e) => updateSettings({ defaultLibraryStatus: e.target.value as typeof settings.defaultLibraryStatus })}
+              className="px-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-xs text-gray-300 focus:outline-none"
+            >
+              {(['READING', 'PLAN_TO_READ', 'COMPLETED', 'DROPPED', 'PAUSED'] as const).map((status) => (
+                <option key={status} value={status}>{getLibraryStatusLabel(status)}</option>
+              ))}
+            </select>
+          </div>
+        </Card>
+      </div>
+
+      <div>
         <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">About</h2>
         <Card className="p-5">
           <div className="flex items-center gap-3 mb-4">
@@ -182,7 +203,7 @@ export default function SettingsPage() {
           <div className="mt-4 pt-4 border-t border-gray-800/50">
             <div className="flex items-center gap-2 text-xs text-gray-500">
               <Info size={12} />
-              <span>Data provided by AniList API. Story timelines are curated demo data.</span>
+              <span>Metadata is provided by AniList. Story timelines are loaded from the configured Supabase timeline database.</span>
             </div>
           </div>
         </Card>
