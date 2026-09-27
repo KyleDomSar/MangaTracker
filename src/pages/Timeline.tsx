@@ -6,8 +6,7 @@ import {
 } from 'lucide-react';
 import { useLibraryStore, useProgressStore, useSettingsStore } from '../store/stores';
 import { Card, Badge, EmptyState, EmptyIcons } from '../components/UI';
-import type { Arc, StoryEvent } from '../models/types';
-import type { SeriesTimeline } from '../data/timelineRepository';
+import type { Arc, StoryEvent, SeriesTimeline } from '../models/types';
 import { supabaseTimelineRepository } from '../data/supabaseTimelineRepository';
 
 export default function TimelinePage() {
@@ -16,15 +15,12 @@ export default function TimelinePage() {
   const libraryItems = useLibraryStore((s) => s.items);
   const allProgress = useProgressStore((s) => s.progress);
 
-  // If a specific series is selected
-  if (seriesId) {
-    return <SeriesTimeline seriesId={Number(seriesId)} />;
-  }
-
   // Supabase is the source for published timeline records.
   const [remoteTimelines, setRemoteTimelines] = useState<SeriesTimeline[]>([]);
 
   useEffect(() => {
+    if (seriesId) return;
+
     let cancelled = false;
 
     async function loadTimelines() {
@@ -43,7 +39,12 @@ export default function TimelinePage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [seriesId]);
+
+  // If a specific series is selected, render it only after all hooks above.
+  if (seriesId) {
+    return <SeriesTimeline seriesId={Number(seriesId)} />;
+  }
 
   const timelines = remoteTimelines;
 
