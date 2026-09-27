@@ -4,7 +4,6 @@ import DashboardLayout from './layouts/DashboardLayout';
 import Dashboard from './pages/Dashboard';
 import Discover from './pages/Discover';
 import LibraryPage from './pages/Library';
-import TimelinePage from './pages/Timeline';
 import ActivityPage from './pages/Activity';
 import ProfilePage from './pages/Profile';
 import SettingsPage from './pages/Settings';
