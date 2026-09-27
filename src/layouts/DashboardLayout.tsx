@@ -14,7 +14,6 @@ const navItems = [
   { path: '/', icon: Home, label: 'Dashboard' },
   { path: '/discover', icon: Compass, label: 'Discover' },
   { path: '/library', icon: Library, label: 'Library' },
-  { path: '/timeline', icon: Clock, label: 'Timeline' },
   { path: '/activity', icon: Activity, label: 'Activity' },
   { path: '/profile', icon: User, label: 'Profile' },
   { path: '/settings', icon: Settings, label: 'Settings' },
