@@ -1,4 +1,4 @@
-// Core Types for ManhwaTimeline
+// Core Types for MangaTracker
 
 export type MangaStatus = 'FINISHED' | 'RELEASING' | 'NOT_YET_RELEASED' | 'CANCELLED' | 'HIATUS';
 export type LibraryStatus = 'READING' | 'PLAN_TO_READ' | 'COMPLETED' | 'DROPPED' | 'PAUSED';
