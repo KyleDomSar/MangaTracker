@@ -8,7 +8,9 @@ import { getMangaDetails } from '../api/anilist';
 import type { MangaDetail } from '../api/anilist';
 import { useLibraryStore, useProgressStore, useActivityStore, getLibraryStatusColor, getLibraryStatusLabel } from '../store/stores';
 import { Card, ProgressBar, Badge, LoadingSpinner, ErrorState } from '../components/UI';
-import { hasTimelineData, getTimelineForSeries } from '../data/timelineRepository';
+import { getTimelineForSeries } from '../data/timelineRepository';
+import { supabaseTimelineRepository } from '../data/supabaseTimelineRepository';
+import type { SeriesTimeline } from '../data/mockTimelineData';
 import type { LibraryStatus } from '../models/types';
 
 export default function MangaDetails() {
@@ -35,8 +37,23 @@ export default function MangaDetails() {
   const markChapterUnread = useProgressStore((s) => s.markChapterUnread);
   const addActivity = useActivityStore((s) => s.addActivity);
 
-  const hasTimeline = hasTimelineData(mangaId);
-  const timelineData = getTimelineForSeries(mangaId);
+  const [timelineData, setTimelineData] = useState<SeriesTimeline | null>(() => getTimelineForSeries(mangaId));
+  const hasTimeline = Boolean(timelineData);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadTimeline() {
+      if (!mangaId || mangaId <= 0) return;
+      const remoteTimeline = await supabaseTimelineRepository.getTimelineForSeries(mangaId);
+      if (!cancelled && remoteTimeline) setTimelineData(remoteTimeline);
+    }
+
+    loadTimeline();
+    return () => {
+      cancelled = true;
+    };
+  }, [mangaId]);
 
   useEffect(() => {
     if (!id || isNaN(mangaId) || mangaId <= 0) {
@@ -143,10 +160,10 @@ export default function MangaDetails() {
   const coverUrl = manga.coverImage.extraLarge || manga.coverImage.large;
   const whereWasI = getWhereWasI();
 
-  // AniList does not always provide a chapter count. In that case, show a
-  // practical tracking window rather than pretending the fallback is the real total.
-  const maxChapters = manga.chapters || (progress ? Math.max(...progress.chaptersRead, 0) + 20 : 50);
-  const chapters = Array.from({ length: maxChapters }, (_, i) => i + 1);
+  // AniList does not always provide a chapter count. Never invent a total.
+  const trackedMaxChapter = Math.max(...(progress?.chaptersRead || []), progress?.lastReadChapter || 0, 0);
+  const chapterListMax = manga.chapters ?? Math.max(trackedMaxChapter + 1, 1);
+  const chapters = Array.from({ length: chapterListMax }, (_, i) => i + 1);
 
   const statusOptions: LibraryStatus[] = ['READING', 'PLAN_TO_READ', 'COMPLETED', 'DROPPED', 'PAUSED'];
 
@@ -313,12 +330,12 @@ export default function MangaDetails() {
           <div className="flex items-center gap-4 mb-3">
             <p className="text-2xl font-bold text-white">{libraryItem.currentChapter}</p>
             <p className="text-gray-500">
-              {manga.chapters ? `/ ${manga.chapters} chapters` : '/ ? chapters'}
+              {manga.chapters ? `/ ${manga.chapters} chapters` : '/ total unavailable'}
             </p>
           </div>
           <ProgressBar
             value={libraryItem.currentChapter}
-            max={manga.chapters || libraryItem.currentChapter + 10}
+            max={manga.chapters || Math.max(libraryItem.currentChapter, 1)}
           />
         </Card>
       )}
