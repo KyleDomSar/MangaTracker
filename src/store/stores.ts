@@ -100,7 +100,12 @@ export const useLibraryStore = create<LibraryState>()(
       },
       getItem: (mangaId) => get().items.find((i) => i.mangaId === mangaId),
       isInLibrary: (mangaId) => get().items.some((i) => i.mangaId === mangaId),
-      clearLibrary: () => set({ items: [] }),
+      clearLibrary: () => {
+        const mangaIds = get().items.map((item) => item.mangaId);
+        set({ items: [] });
+        const progressStore = useProgressStore.getState();
+        mangaIds.forEach((mangaId) => progressStore.removeProgress(mangaId));
+      },
     }),
     {
       name: 'manhwa-library',
@@ -245,7 +250,22 @@ export const useProgressStore = create<ProgressState>()(
       },
       initProgress: (mangaId, totalChapters) => {
         set((state) => {
-          if (state.progress[mangaId]) return state;
+          const existing = state.progress[mangaId];
+
+          if (existing) {
+            // AniList may learn the chapter count later. Keep user progress,
+            // but update the metadata when a real total becomes available.
+            if (existing.totalChapters === null && totalChapters !== null) {
+              return {
+                progress: {
+                  ...state.progress,
+                  [mangaId]: { ...existing, totalChapters },
+                },
+              };
+            }
+            return state;
+          }
+
           return {
             progress: {
               ...state.progress,
