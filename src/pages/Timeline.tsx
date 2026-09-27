@@ -8,7 +8,7 @@ import { useLibraryStore, useProgressStore, useSettingsStore } from '../store/st
 import { Card, Badge, EmptyState, EmptyIcons } from '../components/UI';
 import {
   getTimelineForSeries, getSeriesWithTimelines
-} from '../data/mockTimelineData';
+} from '../data/timelineRepository';
 import type { Arc, StoryEvent } from '../models/types';
 
 export default function TimelinePage() {
