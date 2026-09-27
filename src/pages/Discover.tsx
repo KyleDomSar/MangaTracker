@@ -40,17 +40,17 @@ export default function Discover() {
       try {
         let result;
         if (activeTab === 'search' && searchQuery.trim()) {
-          result = await searchManga(searchQuery, page, 20, selectedGenres, selectedStatus, selectedSort);
+          result = await searchManga(searchQuery, page, 24, selectedGenres, selectedStatus, selectedSort);
         } else if (activeTab === 'latest') {
-          result = await getLatest(page, 20, selectedGenres);
+          result = await getLatest(page, 24, selectedGenres);
         } else if (activeTab === 'ongoing') {
-          result = await getOngoing(page, 20, selectedGenres);
+          result = await getOngoing(page, 24, selectedGenres);
         } else if (activeTab === 'completed') {
-          result = await getCompleted(page, 20, selectedGenres);
+          result = await getCompleted(page, 24, selectedGenres);
         } else if (activeTab === 'popular') {
-          result = await getPopular(page, 20, selectedGenres);
+          result = await getPopular(page, 24, selectedGenres);
         } else {
-          result = await getTrending(page, 20);
+          result = await getTrending(page, 24);
         }
         setManga(result.manga);
         setTotalPages(result.pageInfo.lastPage);
@@ -229,7 +229,7 @@ export default function Discover() {
         <ErrorState message={error} onRetry={() => setPage(page)} />
       ) : loading ? (
         <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
-          {Array.from({ length: 10 }).map((_, i) => (
+          {Array.from({ length: 12 }).map((_, i) => (
             <MangaCardSkeleton key={i} size="lg" />
           ))}
         </div>
