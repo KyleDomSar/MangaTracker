@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Search, Filter, ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { searchManga, getPopular, getTrending, AVAILABLE_GENRES, SORT_OPTIONS, STATUS_OPTIONS } from '../api/anilist';
+import { searchManga, getPopular, getTrending, getLatest, getOngoing, getCompleted, AVAILABLE_GENRES, SORT_OPTIONS, STATUS_OPTIONS } from '../api/anilist';
 import MangaCard, { MangaCardSkeleton } from '../components/MangaCard';
 import { Card, EmptyState, EmptyIcons, ErrorState } from '../components/UI';
 import type { Manga } from '../models/types';
 
-type Tab = 'trending' | 'popular' | 'search';
+type Tab = 'popular' | 'latest' | 'ongoing' | 'completed' | 'search';
 
 export default function Discover() {
   const [activeTab, setActiveTab] = useState<Tab>('trending');
@@ -41,10 +41,16 @@ export default function Discover() {
         let result;
         if (activeTab === 'search' && searchQuery.trim()) {
           result = await searchManga(searchQuery, page, 20, selectedGenres, selectedStatus, selectedSort);
-        } else if (activeTab === 'trending') {
-          result = await getTrending(page, 20);
-        } else {
+        } else if (activeTab === 'latest') {
+          result = await getLatest(page, 20, selectedGenres);
+        } else if (activeTab === 'ongoing') {
+          result = await getOngoing(page, 20, selectedGenres);
+        } else if (activeTab === 'completed') {
+          result = await getCompleted(page, 20, selectedGenres);
+        } else if (activeTab === 'popular') {
           result = await getPopular(page, 20, selectedGenres);
+        } else {
+          result = await getTrending(page, 20);
         }
         setManga(result.manga);
         setTotalPages(result.pageInfo.lastPage);
@@ -61,7 +67,8 @@ export default function Discover() {
     setSearchQuery(value);
     debouncedSearch(value);
     if (!value.trim()) {
-      setActiveTab('trending');
+      setActiveTab('popular');
+      setPage(1);
     }
   };
 
@@ -80,8 +87,10 @@ export default function Discover() {
   };
 
   const tabs = [
-    { id: 'trending' as Tab, label: 'Trending' },
     { id: 'popular' as Tab, label: 'Popular' },
+    { id: 'latest' as Tab, label: 'Latest' },
+    { id: 'ongoing' as Tab, label: 'Ongoing' },
+    { id: 'completed' as Tab, label: 'Completed' },
   ];
 
   return (
@@ -104,7 +113,7 @@ export default function Discover() {
         />
         {searchQuery && (
           <button
-            onClick={() => { setSearchQuery(''); setActiveTab('trending'); }}
+            onClick={() => { setSearchQuery(''); setActiveTab('popular'); setPage(1); }}
             className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-800 rounded-lg transition-colors"
           >
             <X size={16} className="text-gray-500" />
