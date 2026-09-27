@@ -64,7 +64,7 @@ export default function ActivityPage() {
           <p className="text-gray-500 text-sm mt-1">Your reading history and actions</p>
         </div>
         <EmptyState
-          icon={EmptyIcons.timeline}
+          icon={EmptyIcons.book}
           title="No reading activity yet"
           description="Start reading manga to see your activity history here."
           action={
