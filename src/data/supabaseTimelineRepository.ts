@@ -119,6 +119,17 @@ export const supabaseTimelineRepository = {
     };
   },
 
+  async getSeriesWithTimelines(): Promise<number[]> {
+    if (!supabase) return [];
+    const { data, error } = await supabase
+      .from('timeline_series')
+      .select('series_id')
+      .order('title');
+
+    if (error) return [];
+    return (data ?? []).map((row) => Number(row.series_id));
+  },
+
   async hasTimelineData(seriesId: number): Promise<boolean> {
     if (!supabase) return false;
     const { data, error } = await supabase
