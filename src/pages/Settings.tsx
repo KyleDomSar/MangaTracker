@@ -100,21 +100,7 @@ export default function SettingsPage() {
                       <p className="text-xs text-gray-600 mt-1">{item.detail}</p>
                     )}
                   </div>
-                  {item.toggle ? (
-                    <button
-                      onClick={() => updateSettings({ spoilerProtection: !settings.spoilerProtection })}
-                      className={`relative w-11 h-6 rounded-full transition-colors ${
-                        settings.spoilerProtection ? 'bg-violet-500' : 'bg-gray-700'
-                      }`}
-                    >
-                      <div
-                        className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${
-                          settings.spoilerProtection ? 'left-0.5' : 'left-0.5'
-                        }`}
-                        style={{ transform: settings.spoilerProtection ? 'translateX(20px)' : 'translateX(0)' }}
-                      />
-                    </button>
-                  ) : confirmClear === item.action ? (
+                  {confirmClear === item.action ? (
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleClear(item.action)}
