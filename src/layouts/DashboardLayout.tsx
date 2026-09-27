@@ -93,15 +93,15 @@ export default function DashboardLayout() {
 
       {/* Mobile Bottom Navigation */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#12121a]/95 backdrop-blur-sm border-t border-gray-800/50">
-        <div className="flex items-center justify-around px-2 py-2">
-          {navItems.slice(0, 5).map((item) => {
+        <div className="flex items-center gap-1 overflow-x-auto px-2 py-2 scrollbar-hide">
+          {navItems.map((item) => {
             const isActive = location.pathname === item.path || 
               (item.path !== '/' && location.pathname.startsWith(item.path));
             return (
               <NavLink
                 key={item.path}
                 to={item.path}
-                className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-200 ${
+                className={`flex min-w-[68px] flex-shrink-0 flex-col items-center gap-1 px-2 py-2 rounded-xl transition-all duration-200 ${
                   isActive
                     ? 'text-violet-400'
                     : 'text-gray-500'
