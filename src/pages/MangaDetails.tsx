@@ -408,9 +408,10 @@ export default function MangaDetails() {
       {manga.description && (
         <Card className="p-5">
           <h3 className="text-sm font-bold text-gray-300 mb-3">Synopsis</h3>
-          <p className="text-sm text-gray-400 leading-relaxed whitespace-pre-line">
-            {manga.description}
-          </p>
+          <div
+            className="text-sm text-gray-400 leading-relaxed [&_i]:italic [&_em]:italic [&_strong]:font-semibold"
+            dangerouslySetInnerHTML={{ __html: manga.description }}
+          />
         </Card>
       )}
 
