@@ -1,18 +1,14 @@
 import type { Arc, StoryEvent, Character, Location } from '../models/types';
-import { DEMO_TIMELINE_DATA, type SeriesTimeline } from './mockTimelineData';
-
-/**
- * Timeline repository
- *
- * Timeline content is deliberately separated from AniList metadata and user
- * reading progress. The UI talks to this repository instead of importing the
- * underlying data source directly.
- *
- * The local provider is intentionally empty. Supabase is the production source
- * for curated story timeline content.
- */
+import type { SeriesTimeline } from './mockTimelineData';
 
 export type { SeriesTimeline } from './mockTimelineData';
+
+/**
+ * Timeline model types and compatibility helpers.
+ *
+ * Published story timelines are loaded from Supabase. The local timeline
+ * dataset is intentionally empty and is not used as a content source.
+ */
 
 export interface TimelineRepository {
   getTimelineForSeries(seriesId: number): SeriesTimeline | null;
@@ -26,33 +22,19 @@ export interface TimelineRepository {
   hasTimelineData(seriesId: number): boolean;
 }
 
-const localTimelineRepository: TimelineRepository = {
-  getTimelineForSeries: (seriesId) => DEMO_TIMELINE_DATA[seriesId] || null,
-
-  getSeriesWithTimelines: () => Object.keys(DEMO_TIMELINE_DATA).map(Number),
-
-  getEventsForSeries: (seriesId) =>
-    DEMO_TIMELINE_DATA[seriesId]?.events || [],
-
-  getArcsForSeries: (seriesId) =>
-    DEMO_TIMELINE_DATA[seriesId]?.arcs || [],
-
-  getCharactersForSeries: (seriesId) =>
-    DEMO_TIMELINE_DATA[seriesId]?.characters || [],
-
-  getLocationsForSeries: (seriesId) =>
-    DEMO_TIMELINE_DATA[seriesId]?.locations || [],
-
-  getEventById: (seriesId, eventId) =>
-    DEMO_TIMELINE_DATA[seriesId]?.events.find((event) => event.id === eventId) || null,
-
-  getArcById: (seriesId, arcId) =>
-    DEMO_TIMELINE_DATA[seriesId]?.arcs.find((arc) => arc.id === arcId) || null,
-
-  hasTimelineData: (seriesId) => seriesId in DEMO_TIMELINE_DATA,
+const emptyTimelineRepository: TimelineRepository = {
+  getTimelineForSeries: () => null,
+  getSeriesWithTimelines: () => [],
+  getEventsForSeries: () => [],
+  getArcsForSeries: () => [],
+  getCharactersForSeries: () => [],
+  getLocationsForSeries: () => [],
+  getEventById: () => null,
+  getArcById: () => null,
+  hasTimelineData: () => false,
 };
 
-export const timelineRepository = localTimelineRepository;
+export const timelineRepository = emptyTimelineRepository;
 
 export const getTimelineForSeries = (seriesId: number) =>
   timelineRepository.getTimelineForSeries(seriesId);
