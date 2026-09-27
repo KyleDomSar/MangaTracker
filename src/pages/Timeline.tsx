@@ -25,10 +25,14 @@ export default function TimelinePage() {
     let cancelled = false;
 
     async function loadTimelines() {
-      // Library is the user's source of truth for which manga are being tracked.
-      // Only load timelines for manga that are currently in the Library.
+      // Supabase remains the source of truth for which published timelines exist.
+      // Library remains the source of truth for which of those timelines the user tracks.
+      const availableSeriesIds = await supabaseTimelineRepository.getSeriesWithTimelines();
+      const libraryIds = new Set(libraryItems.map((item) => item.mangaId));
+      const librarySeriesIds = availableSeriesIds.filter((id) => libraryIds.has(id));
+
       const timelines = await Promise.all(
-        libraryItems.map((item) => supabaseTimelineRepository.getTimelineForSeries(item.mangaId))
+        librarySeriesIds.map((id) => supabaseTimelineRepository.getTimelineForSeries(id))
       );
 
       if (!cancelled) {
