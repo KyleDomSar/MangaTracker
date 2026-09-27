@@ -8,9 +8,10 @@ import { getLibraryStatusColor } from '../store/stores';
 interface MangaCardProps {
   manga: Manga;
   size?: 'sm' | 'md' | 'lg';
+  fullWidth?: boolean;
 }
 
-export default function MangaCard({ manga, size = 'md' }: MangaCardProps) {
+export default function MangaCard({ manga, size = 'md', fullWidth = false }: MangaCardProps) {
   const isInLibrary = useLibraryStore((s) => s.isInLibrary(manga.id));
   const libraryItem = useLibraryStore((s) => s.getItem(manga.id));
 
@@ -23,10 +24,12 @@ export default function MangaCard({ manga, size = 'md' }: MangaCardProps) {
     lg: 'w-48 sm:w-56',
   };
 
+  const cardWidthClass = fullWidth ? 'w-full' : sizeClasses[size];
+
   return (
     <Link
       to={`/manga/${manga.id}`}
-      className={`${sizeClasses[size]} flex-shrink-0 group`}
+      className={`${cardWidthClass} group`}
     >
       <div className="relative overflow-hidden rounded-xl aspect-[3/4] bg-gray-800/50">
         {coverUrl ? (
