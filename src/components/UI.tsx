@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen, Search, Clock, AlertCircle, Library as LibraryIcon } from 'lucide-react';
+import { BookOpen, Search, AlertCircle, Library as LibraryIcon } from 'lucide-react';
 
 interface ProgressBarProps {
   value: number;
@@ -159,6 +159,5 @@ export function Badge({ children, variant = 'default' }: { children: React.React
 export const EmptyIcons = {
   search: <Search size={28} className="text-gray-600" />,
   library: <LibraryIcon size={28} className="text-gray-600" />,
-  timeline: <Clock size={28} className="text-gray-600" />,
   book: <BookOpen size={28} className="text-gray-600" />,
 };
