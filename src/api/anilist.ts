@@ -318,7 +318,7 @@ export async function searchManga(
   status: string = '',
   sort: string = 'SEARCH_MATCH'
 ): Promise<SearchResult> {
-  const cacheKey = `search-${search}-${page}-${genres.join(',')}-${status}-${sort}`;
+  const cacheKey = `search-${search}-${page}-${perPage}-${genres.join(',')}-${status}-${sort}`;
   const cached = getCache<SearchResult>(cacheKey);
 
   if (cached && !isStale(cached)) {
@@ -352,7 +352,7 @@ export async function searchManga(
 }
 
 export async function getTrending(page: number = 1, perPage: number = 20): Promise<SearchResult> {
-  const cacheKey = `trending-${page}`;
+  const cacheKey = `trending-${page}-${perPage}`;
   const cached = getCache<SearchResult>(cacheKey);
 
   if (cached && !isStale(cached)) {
@@ -377,7 +377,7 @@ export async function getTrending(page: number = 1, perPage: number = 20): Promi
 }
 
 export async function getPopular(page: number = 1, perPage: number = 20, genres: string[] = []): Promise<SearchResult> {
-  const cacheKey = `popular-${page}-${genres.join(',')}`;
+  const cacheKey = `popular-${page}-${perPage}-${genres.join(',')}`;
   const cached = getCache<SearchResult>(cacheKey);
 
   if (cached && !isStale(cached)) {
