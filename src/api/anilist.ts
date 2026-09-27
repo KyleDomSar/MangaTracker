@@ -237,10 +237,10 @@ function cleanDescription(value: string | null | undefined): string | null {
   if (!value) return null;
 
   return value
-    .replace(/<br\\s*\\/?>(?:\\r?\\n)?/gi, '\\n')
-    .replace(/<\\/p\\s*>/gi, '\\n\\n')
+    .replace(/<br\s*\/?>(?:\r?\n)?/gi, '\n')
+    .replace(/<\/p\s*>/gi, '\n\n')
     .replace(/<[^>]*>/g, '')
-    .replace(/\\n{3,}/g, '\\n\\n')
+    .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
 
