@@ -5,6 +5,7 @@ import {
   ChevronRight, Lock, MapPin, Users, Zap, ExternalLink
 } from 'lucide-react';
 import { getMangaDetails } from '../api/anilist';
+import { getChapterInfo } from '../api/mangabaka';
 import type { MangaDetail } from '../api/anilist';
 import { useLibraryStore, useProgressStore, useActivityStore, getLibraryStatusColor, getLibraryStatusLabel } from '../store/stores';
 import { Card, ProgressBar, Badge, LoadingSpinner, ErrorState } from '../components/UI';
@@ -21,6 +22,9 @@ export default function MangaDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
+  const [chapterTotal, setChapterTotal] = useState<number | null>(null);
+  const [chapterSource, setChapterSource] = useState<string | null>(null);
+  const [chapterLookupLoading, setChapterLookupLoading] = useState(false);
 
   const items = useLibraryStore((s) => s.items);
   const isInLibrary = items.some((i) => i.mangaId === mangaId);
@@ -53,6 +57,34 @@ export default function MangaDetails() {
       cancelled = true;
     };
   }, [mangaId]);
+
+  useEffect(() => {
+    if (!manga) return;
+
+    let cancelled = false;
+    setChapterTotal(manga.chapters);
+    setChapterSource(manga.chapters !== null ? 'AniList' : null);
+    setChapterLookupLoading(true);
+
+    getChapterInfo(manga)
+      .then((total) => {
+        if (cancelled) return;
+        if (total !== null) {
+          setChapterTotal(total);
+          setChapterSource('MangaBaka');
+        }
+      })
+      .catch(() => {
+        // AniList data remains the fallback when MangaBaka is unavailable.
+      })
+      .finally(() => {
+        if (!cancelled) setChapterLookupLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [manga]);
 
   useEffect(() => {
     if (!id || isNaN(mangaId) || mangaId <= 0) {
@@ -108,10 +140,22 @@ export default function MangaDetails() {
 
   const handleMarkChapter = (chapter: number, read: boolean) => {
     if (read) {
-      markChapterRead(mangaId, chapter);
-      if (isInLibrary) {
-        updateProgress(mangaId, chapter);
+      if (!isInLibrary && manga) {
+        addItem({
+          mangaId: manga.id,
+          title: manga.title.english || manga.title.romaji,
+          cover: manga.coverImage.extraLarge || manga.coverImage.large,
+          status: 'READING',
+          currentChapter: 0,
+          lastReadChapter: 0,
+          nextChapter: 1,
+          totalChapters: chapterTotal,
+          lastReadDate: null,
+        });
+        initProgress(manga.id, chapterTotal);
       }
+      markChapterRead(mangaId, chapter);
+      updateProgress(mangaId, chapter);
     } else {
       markChapterUnread(mangaId, chapter);
     }
@@ -161,7 +205,7 @@ export default function MangaDetails() {
 
   // AniList does not always provide a chapter count. Never invent a total.
   const trackedMaxChapter = Math.max(...(progress?.chaptersRead || []), progress?.lastReadChapter || 0, 0);
-  const chapterListMax = manga.chapters ?? Math.max(trackedMaxChapter + 1, 1);
+  const chapterListMax = chapterTotal ?? Math.max(trackedMaxChapter + 1, 1);
   const chapters = Array.from({ length: chapterListMax }, (_, i) => i + 1);
 
   const statusOptions: LibraryStatus[] = ['READING', 'PLAN_TO_READ', 'COMPLETED', 'DROPPED', 'PAUSED'];
@@ -329,13 +373,28 @@ export default function MangaDetails() {
           <div className="flex items-center gap-4 mb-3">
             <p className="text-2xl font-bold text-white">{libraryItem.currentChapter}</p>
             <p className="text-gray-500">
-              {manga.chapters ? `/ ${manga.chapters} chapters` : '/ total unavailable'}
+              {chapterTotal ? `/ ${chapterTotal} chapters` : '/ total unavailable'}
             </p>
           </div>
           <ProgressBar
             value={libraryItem.currentChapter}
-            max={manga.chapters || Math.max(libraryItem.currentChapter, 1)}
+            max={chapterTotal || Math.max(libraryItem.currentChapter, 1)}
           />
+          <div className="flex items-center justify-between gap-3 mt-3">
+            <p className="text-xs text-gray-600">
+              {chapterLookupLoading ? 'Checking chapter count...' : chapterSource ? `Total from ${chapterSource}` : 'Chapter count unavailable'}
+            </p>
+            <button
+              onClick={() => {
+                const next = libraryItem.currentChapter + 1;
+                if (chapterTotal && next > chapterTotal) return;
+                handleMarkChapter(next, true);
+              }}
+              className="px-3 py-1.5 bg-violet-500/10 text-violet-400 rounded-lg text-xs font-medium hover:bg-violet-500/20 transition-colors"
+            >
+              Mark Next Chapter
+            </button>
+          </div>
         </Card>
       )}
 
@@ -347,6 +406,18 @@ export default function MangaDetails() {
             className="text-sm text-gray-400 leading-relaxed"
             dangerouslySetInnerHTML={{ __html: manga.description }}
           />
+        </Card>
+      )}
+
+      {(manga.authors.length > 0 || manga.artists.length > 0) && (
+        <Card className="p-5">
+          <h3 className="text-sm font-bold text-gray-300 mb-3">Creators</h3>
+          {manga.authors.length > 0 && (
+            <p className="text-sm text-gray-400">Author: {manga.authors.join(', ')}</p>
+          )}
+          {manga.artists.length > 0 && (
+            <p className="text-sm text-gray-400 mt-1">Artist: {manga.artists.join(', ')}</p>
+          )}
         </Card>
       )}
 
@@ -383,7 +454,7 @@ export default function MangaDetails() {
             <BookOpen size={14} />
             Chapters
             {manga.chapters ? (
-              <span className="text-gray-500 font-normal">({manga.chapters})</span>
+              <span className="text-gray-500 font-normal">({chapterTotal})</span>
             ) : (
               <span className="text-gray-600 font-normal text-xs">(count unavailable)</span>
             )}
@@ -449,6 +520,24 @@ export default function MangaDetails() {
             </div>
           </Card>
         </Link>
+      )}
+
+      {manga.recommended && manga.recommended.length > 0 && (
+        <Card className="p-5">
+          <h3 className="text-sm font-bold text-gray-300 mb-3">You May Also Like</h3>
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+            {manga.recommended.slice(0, 10).map((item) => (
+              <Link key={item.id} to={`/manga/${item.id}`} className="flex-shrink-0 w-20 group">
+                <div className="w-16 h-22 rounded-lg overflow-hidden bg-gray-800 mx-auto">
+                  <img src={item.coverImage.large || item.coverImage.medium} alt="" className="w-full h-full object-cover" />
+                </div>
+                <p className="text-xs text-gray-500 mt-1.5 line-clamp-2 text-center group-hover:text-violet-400 transition-colors">
+                  {item.title.english || item.title.romaji}
+                </p>
+              </Link>
+            ))}
+          </div>
+        </Card>
       )}
 
       {/* Relations */}
