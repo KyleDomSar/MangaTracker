@@ -155,39 +155,35 @@ export default function LibraryPage() {
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
           {filteredItems.map((item) => (
-            <Link
-              key={item.mangaId}
-              to={`/manga/${item.mangaId}`}
-              className="group"
-            >
-              <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-gray-800 mb-2">
-                <img
-                  src={item.cover}
-                  alt={item.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                <div className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-medium border ${getLibraryStatusColor(item.status)}`}>
-                  {getLibraryStatusLabel(item.status)}
-                </div>
-                {item.totalChapters && (
-                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-900/50">
-                    <div
-                      className="h-full bg-violet-500"
-                      style={{ width: `${Math.min(100, (item.currentChapter / item.totalChapters) * 100)}%` }}
-                    />
+            <div key={item.mangaId} className="group">
+              <Link to={`/manga/${item.mangaId}`} className="block">
+                <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-gray-800 mb-2">
+                  <img
+                    src={item.cover}
+                    alt={item.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-medium border ${getLibraryStatusColor(item.status)}`}>
+                    {getLibraryStatusLabel(item.status)}
                   </div>
-                )}
-              </div>
-              <h3 className="text-sm font-medium text-gray-200 line-clamp-2 group-hover:text-violet-400 transition-colors">
-                {item.title}
-              </h3>
-              <p className="text-xs text-gray-500 mt-0.5">
-                Ch. {item.currentChapter}{item.totalChapters ? ` / ${item.totalChapters}` : ''}
-              </p>
+                  {item.totalChapters && (
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-900/50">
+                      <div
+                        className="h-full bg-violet-500"
+                        style={{ width: `${Math.min(100, (item.currentChapter / item.totalChapters) * 100)}%` }}
+                      />
+                    </div>
+                  )}
+                </div>
+                <h3 className="text-sm font-medium text-gray-200 line-clamp-2 group-hover:text-violet-400 transition-colors">
+                  {item.title}
+                </h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Ch. {item.currentChapter}{item.totalChapters ? ` / ${item.totalChapters}` : ''}
+                </p>
+              </Link>
               <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
+                onClick={() => {
                   const next = item.currentChapter + 1;
                   if (item.totalChapters && next > item.totalChapters) return;
                   updateProgress(item.mangaId, next);
@@ -196,7 +192,7 @@ export default function LibraryPage() {
               >
                 Mark Next
               </button>
-            </Link>
+            </div>
           ))}
         </div>
       ) : (
