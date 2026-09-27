@@ -130,6 +130,26 @@ query ($id: Int) {
         image { large medium }
       }
     }
+    recommendations(perPage: 10) {
+      nodes {
+        mediaRecommendation {
+          id
+          title { romaji english }
+          coverImage { large medium }
+          type
+          genres
+          averageScore
+        }
+      }
+    }
+    staff(perPage: 20) {
+      edges {
+        role
+        node {
+          name { full }
+        }
+      }
+    }
   }
 }
 `;
