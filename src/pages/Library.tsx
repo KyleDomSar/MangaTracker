@@ -14,6 +14,7 @@ export default function LibraryPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState<'updated' | 'added' | 'title' | 'progress'>('updated');
+  const [sortDirection, setSortDirection] = useState<'desc' | 'asc'>('desc');
 
   const filteredItems = useMemo(() => {
     let result = items;
@@ -31,24 +32,31 @@ export default function LibraryPage() {
     
     // Sort
     result = [...result].sort((a, b) => {
+      let comparison = 0;
       switch (sortBy) {
         case 'updated':
-          return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
+          comparison = new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
+          break;
         case 'added':
-          return new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime();
+          comparison = new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime();
+          break;
         case 'title':
-          return a.title.localeCompare(b.title);
+          comparison = a.title.localeCompare(b.title);
+          break;
         case 'progress':
           const aProgress = a.totalChapters ? a.currentChapter / a.totalChapters : 0;
           const bProgress = b.totalChapters ? b.currentChapter / b.totalChapters : 0;
-          return bProgress - aProgress;
+          comparison = bProgress - aProgress;
+          break;
         default:
-          return 0;
+          comparison = 0;
+          break;
       }
+      return sortDirection === 'desc' ? comparison : -comparison;
     });
     
     return result;
-  }, [items, activeFilter, searchQuery, sortBy]);
+  }, [items, activeFilter, searchQuery, sortBy, sortDirection]);
 
   const tabs: { id: FilterTab; label: string; icon: React.ReactNode; count: number }[] = [
     { id: 'ALL', label: 'All', icon: <BookOpen size={14} />, count: items.length },
@@ -127,6 +135,14 @@ export default function LibraryPage() {
           <option value="title">Title</option>
           <option value="progress">Progress</option>
         </select>
+        <button
+          type="button"
+          onClick={() => setSortDirection((current) => current === 'desc' ? 'asc' : 'desc')}
+          className="px-2.5 py-1.5 bg-gray-800/50 border border-gray-700/50 rounded-lg text-xs text-gray-300 hover:text-white hover:border-gray-600 transition-colors"
+          title={sortDirection === 'desc' ? 'Descending' : 'Ascending'}
+        >
+          {sortDirection === 'desc' ? 'Descending' : 'Ascending'}
+        </button>
       </div>
 
       {/* Content */}
