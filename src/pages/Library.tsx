@@ -9,6 +9,7 @@ type FilterTab = 'ALL' | LibraryStatus;
 
 export default function LibraryPage() {
   const items = useLibraryStore((s) => s.items);
+  const updateProgress = useLibraryStore((s) => s.updateProgress);
   const [activeFilter, setActiveFilter] = useState<FilterTab>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -183,6 +184,18 @@ export default function LibraryPage() {
               <p className="text-xs text-gray-500 mt-0.5">
                 Ch. {item.currentChapter}{item.totalChapters ? ` / ${item.totalChapters}` : ''}
               </p>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const next = item.currentChapter + 1;
+                  if (item.totalChapters && next > item.totalChapters) return;
+                  updateProgress(item.mangaId, next);
+                }}
+                className="mt-2 w-full px-2 py-1.5 bg-violet-500/10 text-violet-400 rounded-lg text-xs font-medium hover:bg-violet-500/20 transition-colors"
+              >
+                Mark Next
+              </button>
             </Link>
           ))}
         </div>
@@ -216,6 +229,18 @@ export default function LibraryPage() {
                         <ProgressBar value={item.currentChapter} max={item.totalChapters} size="sm" />
                       </div>
                     )}
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const next = item.currentChapter + 1;
+                        if (item.totalChapters && next > item.totalChapters) return;
+                        updateProgress(item.mangaId, next);
+                      }}
+                      className="mt-2 px-3 py-1.5 bg-violet-500/10 text-violet-400 rounded-lg text-xs font-medium hover:bg-violet-500/20 transition-colors"
+                    >
+                      Mark Next Chapter
+                    </button>
                   </div>
                   <div className="text-right flex-shrink-0">
                     <p className="text-xs text-gray-500">
