@@ -58,13 +58,18 @@ export async function getChapterInfo(manga: Pick<Manga, 'id' | 'title' | 'synony
   const request = (async () => {
     const queries = [manga.title, ...manga.synonyms].filter(Boolean);
     for (const query of queries) {
+      const searchQuery =
+        typeof query === 'string'
+          ? query
+          : query.english || query.romaji || query.native || '';
+      if (!searchQuery) continue;
       try {
-        const params = new URLSearchParams({ q: query, limit: '10' });
+        const params = new URLSearchParams({ q: searchQuery, limit: '10' });
         const response = await fetchMangaBaka(`${API_URL}/series/search?${params.toString()}`);
         if (!response.ok) continue;
         const json = (await response.json()) as SearchResponse;
         const items = json.data ?? json.results ?? [];
-        const matches = [...items].sort((a, b) => score(query, a) - score(query, b));
+        const matches = [...items].sort((a, b) => score(searchQuery, a) - score(searchQuery, b));
         const best = matches.find((item) => chapterCount(item) !== undefined);
         const totalChapters = best ? chapterCount(best) ?? null : null;
         if (totalChapters !== null) {
