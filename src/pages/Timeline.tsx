@@ -4,7 +4,7 @@ import {
   Lock, ChevronDown, ChevronRight, Zap, MapPin, Users,
   Star, ArrowLeft
 } from 'lucide-react';
-import { useLibraryStore, useProgressStore } from '../store/stores';
+import { useLibraryStore, useProgressStore, useSettingsStore } from '../store/stores';
 import { Card, Badge, EmptyState, EmptyIcons } from '../components/UI';
 import {
   getTimelineForSeries, getSeriesWithTimelines
@@ -106,6 +106,7 @@ function SeriesTimeline({ seriesId }: { seriesId: number }) {
   const allProgress = useProgressStore((s) => s.progress);
   const progress = allProgress[seriesId];
   const userChapter = progress?.lastReadChapter || 0;
+  const spoilerProtection = useSettingsStore((s) => s.settings.spoilerProtection);
   const timeline = getTimelineForSeries(seriesId);
 
   if (!timeline) {
@@ -134,7 +135,7 @@ function SeriesTimeline({ seriesId }: { seriesId: number }) {
   };
 
   const isEventLocked = (event: StoryEvent): boolean => {
-    return event.chapter > userChapter;
+    return spoilerProtection && event.chapter > userChapter;
   };
 
   const getArcProgress = (arc: Arc): number => {
@@ -170,10 +171,11 @@ function SeriesTimeline({ seriesId }: { seriesId: number }) {
         </p>
       </div>
 
-      {/* Demo Data Notice */}
-      <div className="px-4 py-3 rounded-xl bg-yellow-500/5 border border-yellow-500/20">
-        <p className="text-xs text-yellow-400/80">
-          <strong>Curated Demo Data:</strong> This story timeline is demonstration data, not from an official API.
+      {/* Timeline data source notice */}
+      <div className="px-4 py-3 rounded-xl bg-violet-500/5 border border-violet-500/20">
+        <p className="text-xs text-violet-300/80">
+          <strong>Curated Timeline:</strong> Story events and arcs are maintained separately from AniList metadata.
+          This keeps spoiler-aware reading progress independent from the manga catalog API.
         </p>
       </div>
 
@@ -209,7 +211,7 @@ function SeriesTimeline({ seriesId }: { seriesId: number }) {
                 </div>
               </div>
               <p className="text-xs text-gray-400 mt-2">{char.description}</p>
-              {char.firstAppearance > userChapter && (
+              {spoilerProtection && char.firstAppearance > userChapter && (
                 <div className="mt-2 flex items-center gap-1 text-xs text-yellow-400/60">
                   <Lock size={10} />
                   <span>Spoiler locked</span>
@@ -247,7 +249,7 @@ function SeriesTimeline({ seriesId }: { seriesId: number }) {
               const arcEvents = filteredEvents.filter((e) => e.arcId === arc.id);
               const isExpanded = expandedArcs.has(arc.id);
               const arcProgress = getArcProgress(arc);
-              const isArcLocked = arc.startChapter > userChapter;
+              const isArcLocked = spoilerProtection && arc.startChapter > userChapter;
 
               return (
                 <div key={arc.id} className="relative pl-14">
