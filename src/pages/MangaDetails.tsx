@@ -34,6 +34,7 @@ export default function MangaDetails() {
   const updateTotalChapters = useLibraryStore((s) => s.updateTotalChapters);
   const updateStatus = useLibraryStore((s) => s.updateStatus);
   const updateProgress = useLibraryStore((s) => s.updateProgress);
+  const syncLibraryProgress = useLibraryStore((s) => s.syncProgress);
   const allProgress = useProgressStore((s) => s.progress);
   const progress = allProgress[mangaId];
   const initProgress = useProgressStore((s) => s.initProgress);
@@ -166,6 +167,10 @@ export default function MangaDetails() {
       updateProgress(mangaId, chapter);
     } else {
       markChapterUnread(mangaId, chapter);
+      const updatedProgress = useProgressStore.getState().getProgress(mangaId);
+      if (updatedProgress) {
+        syncLibraryProgress(mangaId, updatedProgress);
+      }
     }
   };
 
