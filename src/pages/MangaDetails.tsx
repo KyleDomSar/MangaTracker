@@ -8,9 +8,8 @@ import { getMangaDetails } from '../api/anilist';
 import type { MangaDetail } from '../api/anilist';
 import { useLibraryStore, useProgressStore, useActivityStore, getLibraryStatusColor, getLibraryStatusLabel } from '../store/stores';
 import { Card, ProgressBar, Badge, LoadingSpinner, ErrorState } from '../components/UI';
-import { getTimelineForSeries } from '../data/timelineRepository';
+import type { SeriesTimeline } from '../data/timelineRepository';
 import { supabaseTimelineRepository } from '../data/supabaseTimelineRepository';
-import type { SeriesTimeline } from '../data/mockTimelineData';
 import type { LibraryStatus } from '../models/types';
 
 export default function MangaDetails() {
@@ -37,7 +36,7 @@ export default function MangaDetails() {
   const markChapterUnread = useProgressStore((s) => s.markChapterUnread);
   const addActivity = useActivityStore((s) => s.addActivity);
 
-  const [timelineData, setTimelineData] = useState<SeriesTimeline | null>(() => getTimelineForSeries(mangaId));
+  const [timelineData, setTimelineData] = useState<SeriesTimeline | null>(null);
   const hasTimeline = Boolean(timelineData);
 
   useEffect(() => {
