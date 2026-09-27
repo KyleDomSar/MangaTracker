@@ -101,18 +101,25 @@ query ($id: Int) {
     endDate { year month day }
     source
     synonyms
+  }
+}
+`;
+
+const MANGA_DETAIL_EXTENDED_QUERY = `
+query ($id: Int) {
+  Media(id: $id, type: MANGA) {
     tags {
       name
       rank
     }
     relations {
       edges {
+        relationType
         node {
           id
           title { romaji english }
           coverImage { large medium }
           type
-          relationType
         }
       }
     }
@@ -126,6 +133,7 @@ query ($id: Int) {
   }
 }
 `;
+
 
 const TRENDING_QUERY = `
 query ($page: Int, $perPage: Int) {
@@ -406,40 +414,88 @@ export async function getMangaDetails(id: number): Promise<MangaDetail> {
   }
 
   try {
-    const data = await fetchGraphQL<{ Media: Record<string, unknown> }>(MANGA_DETAIL_QUERY, { id: Number(id) });
+    // Load the core media record first. Optional relations/characters should
+    // never prevent the main Manga Details page from loading.
+    const data = await fetchGraphQL<{ Media: Record<string, unknown> }>(
+      MANGA_DETAIL_QUERY,
+      { id: Number(id) }
+    );
+
     const media = data.Media;
     const manga = mapMediaToManga(media);
 
-    const tags = ((media.tags as Array<{ name: string; rank: number }>) || []).map((t) => ({
-      name: t.name,
-      rank: t.rank,
-    }));
+    let tags: MangaDetail['tags'] = [];
+    let relations: MangaDetail['relations'] = [];
+    let characters: MangaDetail['characters'] = [];
 
-    const relations = ((media.relations as { edges: Array<{ node: Record<string, unknown>; relationType: string }> })?.edges || [])
-      .filter((e) => e.node.type === 'MANGA')
-      .map((e) => {
-        const node = e.node;
-        const title = node.title as Record<string, string | null>;
-        const coverImage = node.coverImage as Record<string, string>;
-        return {
-          id: node.id as number,
-          title: { romaji: title?.romaji || '', english: title?.english || null },
-          coverImage: { large: coverImage?.large || '', medium: coverImage?.medium || '' },
-          type: node.type as string,
-          relationType: e.relationType,
+    try {
+      const extended = await fetchGraphQL<{
+        Media: {
+          tags?: Array<{ name: string; rank: number }>;
+          relations?: {
+            edges: Array<{
+              node: Record<string, unknown>;
+              relationType: string;
+            }>;
+          };
+          characters?: {
+            nodes: Array<Record<string, unknown>>;
+          };
         };
-      });
+      }>(MANGA_DETAIL_EXTENDED_QUERY, { id: Number(id) });
 
-    const characters = ((media.characters as { nodes: Array<Record<string, unknown>> })?.nodes || []).map((c) => ({
-      id: c.id as number,
-      name: { full: (c.name as Record<string, string>)?.full || '' },
-      image: {
-        large: (c.image as Record<string, string>)?.large || '',
-        medium: (c.image as Record<string, string>)?.medium || '',
-      },
-    }));
+      const extendedMedia = extended.Media;
 
-    const result: MangaDetail = { ...manga, tags, relations, characters };
+      tags = (extendedMedia.tags || []).map((t) => ({
+        name: t.name,
+        rank: t.rank,
+      }));
+
+      relations = (extendedMedia.relations?.edges || [])
+        .filter((e) => e.node.type === 'MANGA')
+        .map((e) => {
+          const node = e.node;
+          const title = node.title as Record<string, string | null>;
+          const coverImage = node.coverImage as Record<string, string>;
+
+          return {
+            id: node.id as number,
+            title: {
+              romaji: title?.romaji || '',
+              english: title?.english || null,
+            },
+            coverImage: {
+              large: coverImage?.large || '',
+              medium: coverImage?.medium || '',
+            },
+            type: node.type as string,
+            relationType: e.relationType,
+          };
+        });
+
+      characters = (extendedMedia.characters?.nodes || []).map((character) => ({
+        id: character.id as number,
+        name: {
+          full: (character.name as Record<string, string>)?.full || '',
+        },
+        image: {
+          large: (character.image as Record<string, string>)?.large || '',
+          medium: (character.image as Record<string, string>)?.medium || '',
+        },
+      }));
+    } catch (extendedError) {
+      // Extended AniList fields are optional. Keep the core manga page usable
+      // even if AniList rejects or temporarily fails this secondary query.
+      console.warn('AniList extended manga data unavailable:', extendedError);
+    }
+
+    const result: MangaDetail = {
+      ...manga,
+      tags,
+      relations,
+      characters,
+    };
+
     setCache(cacheKey, result);
     return result;
   } catch (error) {
