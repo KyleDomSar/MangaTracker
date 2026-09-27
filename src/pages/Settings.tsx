@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trash2, AlertTriangle, Info, Database, BookOpen, Activity, Shield } from 'lucide-react';
+import { Trash2, AlertTriangle, Info, Database, BookOpen, Activity } from 'lucide-react';
 import { useLibraryStore, useActivityStore, useSettingsStore, getLibraryStatusLabel } from '../store/stores';
 import { Card } from '../components/UI';
 
@@ -70,19 +70,6 @@ export default function SettingsPage() {
           action: 'library',
           danger: true,
           detail: `${libraryCount} manga will be removed`,
-        },
-      ],
-    },
-    {
-      title: 'Preferences',
-      items: [
-        {
-          icon: <Shield size={18} className="text-violet-400" />,
-          label: 'Spoiler Protection',
-          description: 'Hide story events beyond your reading progress on timelines.',
-          action: 'spoiler',
-          danger: false,
-          toggle: true,
         },
       ],
     },
@@ -191,19 +178,18 @@ export default function SettingsPage() {
               <BookOpen size={22} className="text-white" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">ManhwaTimeline</h3>
+              <h3 className="text-base font-bold text-white">MangaTracker</h3>
               <p className="text-xs text-gray-500">Version 1.0.0</p>
             </div>
           </div>
           <p className="text-sm text-gray-400 leading-relaxed">
-            ManhwaTimeline is your personal manga and manhwa tracking companion. 
-            Track your reading progress, explore story timelines, and never forget 
-            where you left off in your favorite series.
+            MangaTracker is your personal manga and manhwa tracking companion. 
+            Track your reading progress, manage your library, and keep your reading history organized.
           </p>
           <div className="mt-4 pt-4 border-t border-gray-800/50">
             <div className="flex items-center gap-2 text-xs text-gray-500">
               <Info size={12} />
-              <span>Metadata is provided by AniList. Story timelines are loaded from the configured Supabase timeline database.</span>
+              <span>Metadata is provided by AniList. Reading progress and library data are stored locally in your browser.</span>
             </div>
           </div>
         </Card>
