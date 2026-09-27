@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   Lock, ChevronDown, ChevronRight, Zap, MapPin, Users,
@@ -10,6 +10,8 @@ import {
   getTimelineForSeries, getSeriesWithTimelines
 } from '../data/timelineRepository';
 import type { Arc, StoryEvent } from '../models/types';
+import type { SeriesTimeline } from '../data/mockTimelineData';
+import { supabaseTimelineRepository } from '../data/supabaseTimelineRepository';
 
 export default function TimelinePage() {
   const { seriesId } = useParams<{ seriesId: string }>();
@@ -93,12 +95,10 @@ export default function TimelinePage() {
 
 // Series Timeline Component
 function SeriesTimeline({ seriesId }: { seriesId: number }) {
+  const [timeline, setTimeline] = useState<SeriesTimeline | null>(() => getTimelineForSeries(seriesId));
   const [expandedArcs, setExpandedArcs] = useState<Set<string>>(() => {
-    const timeline = getTimelineForSeries(seriesId);
-    if (timeline && timeline.arcs.length > 0) {
-      return new Set([timeline.arcs[0].id]);
-    }
-    return new Set<string>();
+    const initialTimeline = getTimelineForSeries(seriesId);
+    return initialTimeline?.arcs.length ? new Set([initialTimeline.arcs[0].id]) : new Set<string>();
   });
   const [selectedEvent, setSelectedEvent] = useState<StoryEvent | null>(null);
   const [filterType, setFilterType] = useState<'all' | 'arcs' | 'characters' | 'locations' | 'major'>('all');
@@ -107,7 +107,24 @@ function SeriesTimeline({ seriesId }: { seriesId: number }) {
   const progress = allProgress[seriesId];
   const userChapter = progress?.lastReadChapter || 0;
   const spoilerProtection = useSettingsStore((s) => s.settings.spoilerProtection);
-  const timeline = getTimelineForSeries(seriesId);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadTimeline() {
+      const remoteTimeline = await supabaseTimelineRepository.getTimelineForSeries(seriesId);
+      if (!cancelled && remoteTimeline) {
+        setTimeline(remoteTimeline);
+        setExpandedArcs((current) => {
+          if (current.size > 0) return current;
+          return remoteTimeline.arcs.length ? new Set([remoteTimeline.arcs[0].id]) : new Set<string>();
+        });
+      }
+    }
+    loadTimeline();
+    return () => {
+      cancelled = true;
+    };
+  }, [seriesId]);
 
   if (!timeline) {
     return (
