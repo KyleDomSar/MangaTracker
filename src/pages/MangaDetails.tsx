@@ -122,10 +122,10 @@ export default function MangaDetails() {
       currentChapter: 0,
       lastReadChapter: 0,
       nextChapter: 1,
-      totalChapters: manga.chapters,
+      totalChapters: chapterTotal,
       lastReadDate: null,
     });
-    initProgress(manga.id, manga.chapters);
+    initProgress(manga.id, chapterTotal);
     addActivity({
       type: 'STARTED_READING',
       mangaId: manga.id,
