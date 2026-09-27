@@ -8,7 +8,7 @@ import type { Manga } from '../models/types';
 type Tab = 'popular' | 'latest' | 'ongoing' | 'completed' | 'search';
 
 export default function Discover() {
-  const [activeTab, setActiveTab] = useState<Tab>('trending');
+  const [activeTab, setActiveTab] = useState<Tab>('popular');
   const [manga, setManga] = useState<Manga[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
