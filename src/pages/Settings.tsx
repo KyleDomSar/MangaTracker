@@ -122,9 +122,9 @@ export default function SettingsPage() {
                     >
                       <div
                         className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${
-                          settings.spoilerProtection ? 'translate-x-5.5 left-0.5' : 'left-0.5'
+                          settings.spoilerProtection ? 'left-0.5' : 'left-0.5'
                         }`}
-                        style={{ transform: settings.spoilerProtection ? 'translateX(22px)' : 'translateX(0)' }}
+                        style={{ transform: settings.spoilerProtection ? 'translateX(20px)' : 'translateX(0)' }}
                       />
                     </button>
                   ) : confirmClear === item.action ? (
