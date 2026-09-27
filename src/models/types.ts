@@ -126,3 +126,12 @@ export interface UserSettings {
   spoilerProtection: boolean;
   defaultLibraryStatus: LibraryStatus;
 }
+
+export interface SeriesTimeline {
+  seriesId: number;
+  seriesTitle: string;
+  arcs: Arc[];
+  events: StoryEvent[];
+  characters: Character[];
+  locations: Location[];
+}
