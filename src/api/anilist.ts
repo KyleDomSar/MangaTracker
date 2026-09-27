@@ -233,6 +233,17 @@ function mapStatus(status: string | null): MangaStatus {
   return mapping[status || ''] || 'RELEASING';
 }
 
+function cleanDescription(value: string | null | undefined): string | null {
+  if (!value) return null;
+
+  return value
+    .replace(/<br\\s*\\/?>(?:\\r?\\n)?/gi, '\\n')
+    .replace(/<\\/p\\s*>/gi, '\\n\\n')
+    .replace(/<[^>]*>/g, '')
+    .replace(/\\n{3,}/g, '\\n\\n')
+    .trim();
+}
+
 // Map raw AniList media to our Manga type
 function mapMediaToManga(media: Record<string, unknown>): Manga {
   const title = media.title as Record<string, string | null>;
@@ -253,7 +264,7 @@ function mapMediaToManga(media: Record<string, unknown>): Manga {
       extraLarge: coverImage?.extraLarge || coverImage?.large || '',
     },
     bannerImage: (media.bannerImage as string) || null,
-    description: (media.description as string) || null,
+    description: cleanDescription(media.description as string | null | undefined),
     status: mapStatus(media.status as string),
     genres: (media.genres as string[]) || [],
     averageScore: (media.averageScore as number) || null,
