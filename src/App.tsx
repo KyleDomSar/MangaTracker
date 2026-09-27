@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import DashboardLayout from './layouts/DashboardLayout';
 import Dashboard from './pages/Dashboard';
 import Discover from './pages/Discover';
@@ -13,7 +13,7 @@ import { OfflineBanner } from './components/UI';
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <OfflineBanner />
       <Routes>
         <Route element={<DashboardLayout />}>
@@ -28,6 +28,6 @@ export default function App() {
           <Route path="/manga/:id" element={<MangaDetails />} />
         </Route>
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
