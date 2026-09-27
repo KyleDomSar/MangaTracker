@@ -4,7 +4,7 @@ import {
   Lock, ChevronDown, ChevronRight, Zap, MapPin, Users,
   Star, ArrowLeft
 } from 'lucide-react';
-import { useLibraryStore, useProgressStore, useSettingsStore } from '../store/stores';
+import { useLibraryStore, useSettingsStore } from '../store/stores';
 import { Card, Badge, EmptyState, EmptyIcons } from '../components/UI';
 import type { Arc, StoryEvent, SeriesTimeline } from '../models/types';
 import { supabaseTimelineRepository } from '../data/supabaseTimelineRepository';
