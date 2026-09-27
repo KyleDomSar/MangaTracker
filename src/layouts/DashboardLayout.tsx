@@ -33,7 +33,7 @@ export default function DashboardLayout() {
               <BookOpen size={20} className="text-white" />
             </div>
             <div>
-              <h1 className="font-bold text-lg text-white">ManhwaTimeline</h1>
+              <h1 className="font-bold text-lg text-white">MangaTracker</h1>
               <p className="text-xs text-gray-500">Track your journey</p>
             </div>
           </div>
