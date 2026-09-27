@@ -31,6 +31,7 @@ export default function MangaDetails() {
   const libraryItem = items.find((i) => i.mangaId === mangaId);
   const addItem = useLibraryStore((s) => s.addItem);
   const removeItem = useLibraryStore((s) => s.removeItem);
+  const updateTotalChapters = useLibraryStore((s) => s.updateTotalChapters);
   const updateStatus = useLibraryStore((s) => s.updateStatus);
   const updateProgress = useLibraryStore((s) => s.updateProgress);
   const allProgress = useProgressStore((s) => s.progress);
@@ -90,7 +91,8 @@ export default function MangaDetails() {
   useEffect(() => {
     if (!manga || !isInLibrary || chapterTotal === null) return;
     initProgress(manga.id, chapterTotal);
-  }, [manga, isInLibrary, chapterTotal, initProgress]);
+    updateTotalChapters(manga.id, chapterTotal);
+  }, [manga, isInLibrary, chapterTotal, initProgress, updateTotalChapters]);
 
   useEffect(() => {
     if (!id || isNaN(mangaId) || mangaId <= 0) {
@@ -269,8 +271,8 @@ export default function MangaDetails() {
               <Badge variant={manga.status === 'FINISHED' ? 'success' : 'info'}>
                 {manga.status === 'FINISHED' ? 'Finished' : manga.status === 'RELEASING' ? 'Releasing' : manga.status}
               </Badge>
-              {manga.chapters && (
-                <Badge>{manga.chapters} Chapters</Badge>
+              {chapterTotal && (
+                <Badge>{chapterTotal} Chapters</Badge>
               )}
             </div>
 
@@ -459,7 +461,7 @@ export default function MangaDetails() {
           <h3 className="text-sm font-bold text-gray-300 flex items-center gap-2">
             <BookOpen size={14} />
             Chapters
-            {manga.chapters ? (
+            {chapterTotal ? (
               <span className="text-gray-500 font-normal">({chapterTotal})</span>
             ) : (
               <span className="text-gray-600 font-normal text-xs">(count unavailable)</span>
