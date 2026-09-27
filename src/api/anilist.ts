@@ -241,24 +241,34 @@ function mapMediaToManga(media: Record<string, unknown>): Manga {
 
 // API client
 async function fetchGraphQL<T>(query: string, variables: Record<string, unknown>): Promise<T> {
-  const response = await fetch(ANILIST_API, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    },
-    body: JSON.stringify({ query, variables }),
-  });
+  try {
+    const response = await fetch(ANILIST_API, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({ query, variables }),
+    });
 
-  if (!response.ok) {
-    throw new Error(`API error: ${response.status} ${response.statusText}`);
-  }
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('AniList API Error:', response.status, errorText);
+      throw new Error(`API error: ${response.status} - ${response.statusText}`);
+    }
 
-  const json = await response.json();
-  if (json.errors) {
-    throw new Error(json.errors[0]?.message || 'GraphQL error');
+    const json = await response.json();
+    if (json.errors) {
+      console.error('GraphQL Errors:', json.errors);
+      throw new Error(json.errors[0]?.message || 'GraphQL error');
+    }
+    return json.data as T;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Network error: Failed to connect to AniList API');
   }
-  return json.data as T;
 }
 
 // Public API functions
@@ -383,6 +393,11 @@ export interface MangaDetail extends Manga {
 }
 
 export async function getMangaDetails(id: number): Promise<MangaDetail> {
+  // Validate ID
+  if (!id || isNaN(id) || id <= 0) {
+    throw new Error('Invalid manga ID');
+  }
+
   const cacheKey = `manga-detail-${id}`;
   const cached = getCache<MangaDetail>(cacheKey);
 
@@ -391,7 +406,7 @@ export async function getMangaDetails(id: number): Promise<MangaDetail> {
   }
 
   try {
-    const data = await fetchGraphQL<{ Media: Record<string, unknown> }>(MANGA_DETAIL_QUERY, { id });
+    const data = await fetchGraphQL<{ Media: Record<string, unknown> }>(MANGA_DETAIL_QUERY, { id: Number(id) });
     const media = data.Media;
     const manga = mapMediaToManga(media);
 

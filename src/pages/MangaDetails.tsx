@@ -16,6 +16,22 @@ export default function MangaDetails() {
   const navigate = useNavigate();
   const mangaId = Number(id);
 
+  // Validate manga ID
+  if (!id || isNaN(mangaId) || mangaId <= 0) {
+    return (
+      <div className="space-y-6">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
+        >
+          <ArrowLeft size={16} />
+          Back
+        </button>
+        <ErrorState message="Invalid manga ID. Please go back and try again." />
+      </div>
+    );
+  }
+
   const [manga, setManga] = useState<MangaDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
