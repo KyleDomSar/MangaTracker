@@ -13,8 +13,6 @@ export default function TimelinePage() {
   const { seriesId } = useParams<{ seriesId: string }>();
 
   const libraryItems = useLibraryStore((s) => s.items);
-  const allProgress = useProgressStore((s) => s.progress);
-
   // Supabase is the source for published timeline records.
   const [remoteTimelines, setRemoteTimelines] = useState<SeriesTimeline[]>([]);
   const [isLoadingTimelines, setIsLoadingTimelines] = useState(true);
@@ -27,9 +25,10 @@ export default function TimelinePage() {
     let cancelled = false;
 
     async function loadTimelines() {
-      const seriesIds = await supabaseTimelineRepository.getSeriesWithTimelines();
+      // Library is the user's source of truth for which manga are being tracked.
+      // Only load timelines for manga that are currently in the Library.
       const timelines = await Promise.all(
-        seriesIds.map((sid) => supabaseTimelineRepository.getTimelineForSeries(sid))
+        libraryItems.map((item) => supabaseTimelineRepository.getTimelineForSeries(item.mangaId))
       );
 
       if (!cancelled) {
@@ -43,7 +42,7 @@ export default function TimelinePage() {
     return () => {
       cancelled = true;
     };
-  }, [seriesId]);
+  }, [seriesId, libraryItems]);
 
   // If a specific series is selected, render it only after all hooks above.
   if (seriesId) {
@@ -81,10 +80,9 @@ export default function TimelinePage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {timelines.map((timeline) => {
           const sid = timeline.seriesId;
-          if (!timeline) return null;
           const libraryItem = libraryItems.find((i) => i.mangaId === sid);
-          const progress = allProgress[sid];
-          const userChapter = progress?.lastReadChapter || 0;
+          if (!libraryItem) return null;
+          const userChapter = libraryItem.currentChapter;
 
           return (
             <Link
@@ -139,9 +137,8 @@ function SeriesTimeline({ seriesId }: { seriesId: number }) {
   const [selectedEvent, setSelectedEvent] = useState<StoryEvent | null>(null);
   const [filterType, setFilterType] = useState<'all' | 'arcs' | 'characters' | 'locations' | 'major'>('all');
 
-  const allProgress = useProgressStore((s) => s.progress);
-  const progress = allProgress[seriesId];
-  const userChapter = progress?.lastReadChapter || 0;
+  const libraryItem = useLibraryStore((s) => s.items.find((item) => item.mangaId === seriesId));
+  const userChapter = libraryItem?.currentChapter || 0;
   const spoilerProtection = useSettingsStore((s) => s.settings.spoilerProtection);
 
   useEffect(() => {
@@ -165,6 +162,22 @@ function SeriesTimeline({ seriesId }: { seriesId: number }) {
       cancelled = true;
     };
   }, [seriesId]);
+
+  if (!libraryItem) {
+    return (
+      <div className="space-y-6">
+        <Link to="/timeline" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm">
+          <ArrowLeft size={16} />
+          Back to Timelines
+        </Link>
+        <EmptyState
+          icon={EmptyIcons.timeline}
+          title="Manga not in Library"
+          description="Add this manga to your Library to track its timeline against your reading progress."
+        />
+      </div>
+    );
+  }
 
   if (isLoadingTimeline) {
     return (
