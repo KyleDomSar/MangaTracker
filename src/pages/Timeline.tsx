@@ -32,11 +32,11 @@ export default function TimelinePage() {
         <p className="text-gray-500 text-sm mt-1">Explore story events, arcs, and characters</p>
       </div>
 
-      {/* Demo Data Notice */}
-      <div className="px-4 py-3 rounded-xl bg-yellow-500/5 border border-yellow-500/20">
-        <p className="text-xs text-yellow-400/80">
-          <strong>Demo Data:</strong> Story timelines shown here are curated demonstration data. 
-          In a production environment, this data would come from community contributions or a backend database.
+      {/* Timeline data source notice */}
+      <div className="px-4 py-3 rounded-xl bg-violet-500/5 border border-violet-500/20">
+        <p className="text-xs text-violet-300/80">
+          <strong>Curated Timeline Data:</strong> Story arcs and events are maintained separately from AniList.
+          This allows spoiler-safe reading progress without depending on chapter metadata from the catalog API.
         </p>
       </div>
 
