@@ -16,22 +16,6 @@ export default function MangaDetails() {
   const navigate = useNavigate();
   const mangaId = Number(id);
 
-  // Validate manga ID
-  if (!id || isNaN(mangaId) || mangaId <= 0) {
-    return (
-      <div className="space-y-6">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
-        >
-          <ArrowLeft size={16} />
-          Back
-        </button>
-        <ErrorState message="Invalid manga ID. Please go back and try again." />
-      </div>
-    );
-  }
-
   const [manga, setManga] = useState<MangaDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -53,6 +37,22 @@ export default function MangaDetails() {
 
   const hasTimeline = hasTimelineData(mangaId);
   const timelineData = getTimelineForSeries(mangaId);
+
+  // Validate the route after all hooks have been declared.
+  if (!id || isNaN(mangaId) || mangaId <= 0) {
+    return (
+      <div className="space-y-6">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
+        >
+          <ArrowLeft size={16} />
+          Back
+        </button>
+        <ErrorState message="Invalid manga ID. Please go back and try again." />
+      </div>
+    );
+  }
 
   useEffect(() => {
     async function loadManga() {
@@ -138,7 +138,8 @@ export default function MangaDetails() {
   const coverUrl = manga.coverImage.extraLarge || manga.coverImage.large;
   const whereWasI = getWhereWasI();
 
-  // Generate chapter list (up to totalChapters or 100 if unknown)
+  // AniList does not always provide a chapter count. In that case, show a
+  // practical tracking window rather than pretending the fallback is the real total.
   const maxChapters = manga.chapters || (progress ? Math.max(...progress.chaptersRead, 0) + 20 : 50);
   const chapters = Array.from({ length: maxChapters }, (_, i) => i + 1);
 
