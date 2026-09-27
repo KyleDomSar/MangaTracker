@@ -12,6 +12,7 @@ interface LibraryState {
   removeItem: (mangaId: number) => void;
   updateStatus: (mangaId: number, status: LibraryStatus) => void;
   updateProgress: (mangaId: number, chapter: number) => void;
+  syncProgress: (mangaId: number, progress: ReadingProgress) => void;
   updateTotalChapters: (mangaId: number, totalChapters: number) => void;
   getItem: (mangaId: number) => LibraryItem | undefined;
   isInLibrary: (mangaId: number) => boolean;
@@ -67,6 +68,29 @@ export const useLibraryStore = create<LibraryState>()(
             metadata: { newStatus: status },
           });
         }
+      },
+      syncProgress: (mangaId, progress) => {
+        set((state) => ({
+          items: state.items.map((i) =>
+            i.mangaId === mangaId
+              ? {
+                  ...i,
+                  currentChapter: progress.currentChapter,
+                  lastReadChapter: progress.lastReadChapter,
+                  nextChapter: progress.nextChapter,
+                  lastReadDate: progress.lastReadDate,
+                  totalChapters: progress.totalChapters,
+                  lastUpdated: new Date().toISOString(),
+                  status:
+                    progress.totalChapters !== null && progress.currentChapter >= progress.totalChapters
+                      ? 'COMPLETED'
+                      : i.status === 'COMPLETED'
+                        ? 'READING'
+                        : i.status,
+                }
+              : i
+          ),
+        }));
       },
       updateTotalChapters: (mangaId, totalChapters) => {
         if (!Number.isFinite(totalChapters) || totalChapters <= 0) return;
