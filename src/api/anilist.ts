@@ -397,8 +397,7 @@ export async function getTrending(page: number = 1, perPage: number = 20): Promi
 
 export async function getPopular(page: number = 1, perPage: number = 20, genres: string[] = [], status: string = '', sort: string = 'POPULARITY_DESC'): Promise<SearchResult> {
   return searchManga('', page, perPage, genres, status, sort);
-  const cached = getCache<SearchResult>(cacheKey);
-
+}
 
 export interface MangaDetail extends Manga {
   tags: { name: string; rank: number }[];
