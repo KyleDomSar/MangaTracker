@@ -262,7 +262,7 @@ async function fetchGraphQL<T>(query: string, variables: Record<string, unknown>
     if (!response.ok) {
       const errorText = await response.text();
       console.error('AniList API Error:', response.status, errorText);
-      throw new Error(`API error: ${response.status} - ${response.statusText}`);
+      throw new Error(`API error: ${response.status}${errorText ? ` - ${errorText.slice(0, 300)}` : ` - ${response.statusText}`}`);
     }
 
     const json = await response.json();
@@ -398,6 +398,16 @@ export interface MangaDetail extends Manga {
     name: { full: string };
     image: { large: string; medium: string };
   }[];
+  recommended: {
+    id: number;
+    title: { romaji: string; english: string | null };
+    coverImage: { large: string; medium: string };
+    type: string;
+    genres: string[];
+    averageScore: number | null;
+  }[];
+  authors: string[];
+  artists: string[];
 }
 
 export async function getMangaDetails(id: number): Promise<MangaDetail> {
@@ -427,6 +437,9 @@ export async function getMangaDetails(id: number): Promise<MangaDetail> {
     let tags: MangaDetail['tags'] = [];
     let relations: MangaDetail['relations'] = [];
     let characters: MangaDetail['characters'] = [];
+    let recommended: MangaDetail['recommended'] = [];
+    let authors: string[] = [];
+    let artists: string[] = [];
 
     try {
       const extended = await fetchGraphQL<{
@@ -440,6 +453,17 @@ export async function getMangaDetails(id: number): Promise<MangaDetail> {
           };
           characters?: {
             nodes: Array<Record<string, unknown>>;
+          };
+          recommendations?: {
+            nodes: Array<{
+              mediaRecommendation?: Record<string, unknown> | null;
+            }>;
+          };
+          staff?: {
+            edges: Array<{
+              role: string | null;
+              node?: { name?: { full?: string | null } };
+            }>;
           };
         };
       }>(MANGA_DETAIL_EXTENDED_QUERY, { id: Number(id) });
@@ -483,6 +507,42 @@ export async function getMangaDetails(id: number): Promise<MangaDetail> {
           medium: (character.image as Record<string, string>)?.medium || '',
         },
       }));
+
+      recommended = (extendedMedia.recommendations?.nodes || [])
+        .map((edge) => edge.mediaRecommendation)
+        .filter((node): node is Record<string, unknown> => Boolean(node && node.type === 'MANGA'))
+        .map((node) => {
+          const title = node.title as Record<string, string | null>;
+          const coverImage = node.coverImage as Record<string, string>;
+          return {
+            id: node.id as number,
+            title: {
+              romaji: title?.romaji || '',
+              english: title?.english || null,
+            },
+            coverImage: {
+              large: coverImage?.large || '',
+              medium: coverImage?.medium || '',
+            },
+            type: node.type as string,
+            genres: (node.genres as string[]) || [],
+            averageScore: (node.averageScore as number) || null,
+          };
+        });
+
+      const staff = extendedMedia.staff?.edges || [];
+      authors = [...new Set(
+        staff
+          .filter((edge) => /story|author|original creator/i.test(edge.role || ''))
+          .map((edge) => edge.node?.name?.full)
+          .filter((name): name is string => Boolean(name))
+      )];
+      artists = [...new Set(
+        staff
+          .filter((edge) => /art|artist|illustrat/i.test(edge.role || ''))
+          .map((edge) => edge.node?.name?.full)
+          .filter((name): name is string => Boolean(name))
+      )];
     } catch (extendedError) {
       // Extended AniList fields are optional. Keep the core manga page usable
       // even if AniList rejects or temporarily fails this secondary query.
@@ -494,6 +554,9 @@ export async function getMangaDetails(id: number): Promise<MangaDetail> {
       tags,
       relations,
       characters,
+      recommended,
+      authors,
+      artists,
     };
 
     setCache(cacheKey, result);
@@ -502,6 +565,18 @@ export async function getMangaDetails(id: number): Promise<MangaDetail> {
     if (cached) return cached.data;
     throw error;
   }
+}
+
+export async function getLatest(page: number = 1, perPage: number = 20, genres: string[] = []): Promise<SearchResult> {
+  return searchManga('', page, perPage, genres, '', 'UPDATED_AT_DESC');
+}
+
+export async function getOngoing(page: number = 1, perPage: number = 20, genres: string[] = []): Promise<SearchResult> {
+  return searchManga('', page, perPage, genres, 'RELEASING', 'POPULARITY_DESC');
+}
+
+export async function getCompleted(page: number = 1, perPage: number = 20, genres: string[] = []): Promise<SearchResult> {
+  return searchManga('', page, perPage, genres, 'FINISHED', 'POPULARITY_DESC');
 }
 
 // Available genres
