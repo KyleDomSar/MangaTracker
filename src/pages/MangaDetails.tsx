@@ -88,6 +88,11 @@ export default function MangaDetails() {
   }, [manga]);
 
   useEffect(() => {
+    if (!manga || !isInLibrary || chapterTotal === null) return;
+    initProgress(manga.id, chapterTotal);
+  }, [manga, isInLibrary, chapterTotal, initProgress]);
+
+  useEffect(() => {
     if (!id || isNaN(mangaId) || mangaId <= 0) {
       setLoading(false);
       setError('Invalid manga ID');
