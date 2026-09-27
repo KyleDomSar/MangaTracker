@@ -38,30 +38,19 @@ export default function MangaDetails() {
   const hasTimeline = hasTimelineData(mangaId);
   const timelineData = getTimelineForSeries(mangaId);
 
-  // Validate the route after all hooks have been declared.
-  if (!id || isNaN(mangaId) || mangaId <= 0) {
-    return (
-      <div className="space-y-6">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
-        >
-          <ArrowLeft size={16} />
-          Back
-        </button>
-        <ErrorState message="Invalid manga ID. Please go back and try again." />
-      </div>
-    );
-  }
-
   useEffect(() => {
+    if (!id || isNaN(mangaId) || mangaId <= 0) {
+      setLoading(false);
+      setError('Invalid manga ID');
+      return;
+    }
+
     async function loadManga() {
       setLoading(true);
       setError(null);
       try {
         const data = await getMangaDetails(mangaId);
         setManga(data);
-        // Initialize progress if in library
         if (useLibraryStore.getState().isInLibrary(mangaId)) {
           initProgress(mangaId, data.chapters);
         }
@@ -72,7 +61,7 @@ export default function MangaDetails() {
       }
     }
     loadManga();
-  }, [mangaId]);
+  }, [id, mangaId, initProgress]);
 
   const handleAddToLibrary = (status: LibraryStatus = 'READING') => {
     if (!manga) return;
@@ -129,6 +118,22 @@ export default function MangaDetails() {
       .sort((a, b) => b.chapter - a.chapter)[0];
     return { lastRead, currentArc, lastEvent, nextChapter: lastRead + 1 };
   };
+
+  // Validate the route after all hooks have been declared.
+  if (!id || isNaN(mangaId) || mangaId <= 0) {
+    return (
+      <div className="space-y-6">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
+        >
+          <ArrowLeft size={16} />
+          Back
+        </button>
+        <ErrorState message="Invalid manga ID. Please go back and try again." />
+      </div>
+    );
+  }
 
   if (loading) return <LoadingSpinner size="lg" />;
   if (error) return <ErrorState message={error} onRetry={() => window.location.reload()} />;
