@@ -19,8 +19,6 @@ export default function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/discover" element={<Discover />} />
           <Route path="/library" element={<LibraryPage />} />
-          <Route path="/timeline" element={<TimelinePage />} />
-          <Route path="/timeline/:seriesId" element={<TimelinePage />} />
           <Route path="/activity" element={<ActivityPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/settings" element={<SettingsPage />} />
