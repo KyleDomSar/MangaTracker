@@ -210,12 +210,13 @@ function SeriesTimeline({ seriesId }: { seriesId: number }) {
                   <p className="text-xs text-gray-500">First appearance: Ch. {char.firstAppearance}</p>
                 </div>
               </div>
-              <p className="text-xs text-gray-400 mt-2">{char.description}</p>
-              {spoilerProtection && char.firstAppearance > userChapter && (
+              {spoilerProtection && char.firstAppearance > userChapter ? (
                 <div className="mt-2 flex items-center gap-1 text-xs text-yellow-400/60">
                   <Lock size={10} />
-                  <span>Spoiler locked</span>
+                  <span>Spoiler locked until Chapter {char.firstAppearance}</span>
                 </div>
+              ) : (
+                <p className="text-xs text-gray-400 mt-2">{char.description}</p>
               )}
             </Card>
           ))}
