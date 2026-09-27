@@ -42,13 +42,13 @@ export default function Discover() {
         if (activeTab === 'search' && searchQuery.trim()) {
           result = await searchManga(searchQuery, page, 24, selectedGenres, selectedStatus, selectedSort);
         } else if (activeTab === 'latest') {
-          result = await getLatest(page, 24, selectedGenres);
+          result = await getLatest(page, 24, selectedGenres, selectedStatus, selectedSort);
         } else if (activeTab === 'ongoing') {
-          result = await getOngoing(page, 24, selectedGenres);
+          result = await getOngoing(page, 24, selectedGenres, selectedStatus, selectedSort);
         } else if (activeTab === 'completed') {
-          result = await getCompleted(page, 24, selectedGenres);
+          result = await getCompleted(page, 24, selectedGenres, selectedStatus, selectedSort);
         } else if (activeTab === 'popular') {
-          result = await getPopular(page, 24, selectedGenres);
+          result = await getPopular(page, 24, selectedGenres, selectedStatus, selectedSort);
         } else {
           result = await getTrending(page, 24);
         }
