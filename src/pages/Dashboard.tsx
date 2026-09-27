@@ -9,7 +9,8 @@ import type { Manga } from '../models/types';
 
 export default function Dashboard() {
   const items = useLibraryStore((s) => s.items);
-  const activities = useActivityStore((s) => s.getRecentActivities(5));
+  const allActivities = useActivityStore((s) => s.activities);
+  const activities = allActivities.slice(0, 5);
 
   const [trending, setTrending] = React.useState<Manga[]>([]);
   const [loading, setLoading] = React.useState(true);

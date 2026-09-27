@@ -15,7 +15,7 @@ export default function TimelinePage() {
   const { seriesId } = useParams<{ seriesId: string }>();
 
   const libraryItems = useLibraryStore((s) => s.items);
-  const getProgress = useProgressStore((s) => s.getProgress);
+  const allProgress = useProgressStore((s) => s.progress);
 
   // If a specific series is selected
   if (seriesId) {
@@ -46,7 +46,7 @@ export default function TimelinePage() {
           const timeline = getTimelineForSeries(sid);
           if (!timeline) return null;
           const libraryItem = libraryItems.find((i) => i.mangaId === sid);
-          const progress = getProgress(sid);
+          const progress = allProgress[sid];
           const userChapter = progress?.lastReadChapter || 0;
 
           return (
@@ -103,7 +103,8 @@ function SeriesTimeline({ seriesId }: { seriesId: number }) {
   const [selectedEvent, setSelectedEvent] = useState<StoryEvent | null>(null);
   const [filterType, setFilterType] = useState<'all' | 'arcs' | 'characters' | 'locations' | 'major'>('all');
 
-  const progress = useProgressStore((s) => s.getProgress(seriesId));
+  const allProgress = useProgressStore((s) => s.progress);
+  const progress = allProgress[seriesId];
   const userChapter = progress?.lastReadChapter || 0;
   const timeline = getTimelineForSeries(seriesId);
 

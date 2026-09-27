@@ -21,13 +21,15 @@ export default function MangaDetails() {
   const [error, setError] = useState<string | null>(null);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
 
-  const isInLibrary = useLibraryStore((s) => s.isInLibrary(mangaId));
-  const libraryItem = useLibraryStore((s) => s.getItem(mangaId));
+  const items = useLibraryStore((s) => s.items);
+  const isInLibrary = items.some((i) => i.mangaId === mangaId);
+  const libraryItem = items.find((i) => i.mangaId === mangaId);
   const addItem = useLibraryStore((s) => s.addItem);
   const removeItem = useLibraryStore((s) => s.removeItem);
   const updateStatus = useLibraryStore((s) => s.updateStatus);
   const updateProgress = useLibraryStore((s) => s.updateProgress);
-  const progress = useProgressStore((s) => s.getProgress(mangaId));
+  const allProgress = useProgressStore((s) => s.progress);
+  const progress = allProgress[mangaId];
   const initProgress = useProgressStore((s) => s.initProgress);
   const markChapterRead = useProgressStore((s) => s.markChapterRead);
   const markChapterUnread = useProgressStore((s) => s.markChapterUnread);

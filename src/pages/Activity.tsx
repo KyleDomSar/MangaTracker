@@ -31,7 +31,28 @@ function getActivityColor(type: ActivityType): string {
 
 export default function ActivityPage() {
   const activities = useActivityStore((s) => s.activities);
-  const groupedActivities = useActivityStore((s) => s.getActivitiesByDate());
+
+  // Group activities by date using useMemo to avoid infinite loops
+  const groupedActivities = React.useMemo(() => {
+    const grouped: Record<string, typeof activities> = {};
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today.getTime() - 86400000);
+    const weekAgo = new Date(today.getTime() - 7 * 86400000);
+
+    activities.forEach((activity) => {
+      const date = new Date(activity.timestamp);
+      let group: string;
+      if (date >= today) group = 'Today';
+      else if (date >= yesterday) group = 'Yesterday';
+      else if (date >= weekAgo) group = 'This Week';
+      else group = 'Older';
+
+      if (!grouped[group]) grouped[group] = [];
+      grouped[group].push(activity);
+    });
+    return grouped;
+  }, [activities]);
 
   const groupOrder = ['Today', 'Yesterday', 'This Week', 'Older'];
 
