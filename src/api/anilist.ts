@@ -236,11 +236,19 @@ function mapStatus(status: string | null): MangaStatus {
 function cleanDescription(value: string | null | undefined): string | null {
   if (!value) return null;
 
+  // AniList descriptions may contain simple HTML formatting even when
+  // asHtml is false. Keep only the formatting we intentionally support.
   return value
-    .replace(/<br\s*\/?>(?:\r?\n)?/gi, '\n')
-    .replace(/<\/p\s*>/gi, '\n\n')
-    .replace(/<[^>]*>/g, '')
-    .replace(/\n{3,}/g, '\n\n')
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<p\b[^>]*>/gi, '')
+    .replace(/<\/p\s*>/gi, '<br /><br />')
+    .replace(/<br\s*\/?>/gi, '<br />')
+    .replace(/<\s*(i|em)\b[^>]*>/gi, '<i>')
+    .replace(/<\s*\/\s*(i|em)\s*>/gi, '</i>')
+    .replace(/<\s*(b|strong)\b[^>]*>/gi, '<strong>')
+    .replace(/<\s*\/\s*(b|strong)\s*>/gi, '</strong>')
+    .replace(/<(?!\/?(?:br|i|strong)\b)[^>]*>/gi, '')
     .trim();
 }
 
@@ -447,7 +455,7 @@ export async function getMangaDetails(id: number): Promise<MangaDetail> {
     throw new Error('Invalid manga ID');
   }
 
-  const cacheKey = `manga-detail-${id}`;
+  const cacheKey = `manga-detail-v2-${id}`;
   const cached = getCache<MangaDetail>(cacheKey);
 
   if (cached && !isStale(cached)) {
