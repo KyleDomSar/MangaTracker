@@ -6,9 +6,6 @@ import {
 } from 'lucide-react';
 import { useLibraryStore, useProgressStore, useSettingsStore } from '../store/stores';
 import { Card, Badge, EmptyState, EmptyIcons } from '../components/UI';
-import {
-  getTimelineForSeries, getSeriesWithTimelines
-} from '../data/timelineRepository';
 import type { Arc, StoryEvent } from '../models/types';
 import type { SeriesTimeline } from '../data/timelineRepository';
 import { supabaseTimelineRepository } from '../data/supabaseTimelineRepository';
@@ -24,7 +21,6 @@ export default function TimelinePage() {
     return <SeriesTimeline seriesId={Number(seriesId)} />;
   }
 
-  // Show all available timelines. Local fallback is intentionally empty;
   // Supabase is the source for published timeline records.
   const [remoteTimelines, setRemoteTimelines] = useState<SeriesTimeline[]>([]);
 
@@ -49,12 +45,7 @@ export default function TimelinePage() {
     };
   }, []);
 
-  const localSeriesIds = getSeriesWithTimelines();
-  const localTimelines = localSeriesIds
-    .map((sid) => getTimelineForSeries(sid))
-    .filter((item): item is SeriesTimeline => Boolean(item));
-
-  const timelines = remoteTimelines.length > 0 ? remoteTimelines : localTimelines;
+  const timelines = remoteTimelines;
 
   return (
     <div className="space-y-6">
@@ -124,10 +115,9 @@ export default function TimelinePage() {
 
 // Series Timeline Component
 function SeriesTimeline({ seriesId }: { seriesId: number }) {
-  const [timeline, setTimeline] = useState<SeriesTimeline | null>(() => getTimelineForSeries(seriesId));
+  const [timeline, setTimeline] = useState<SeriesTimeline | null>(null);
   const [expandedArcs, setExpandedArcs] = useState<Set<string>>(() => {
-    const initialTimeline = getTimelineForSeries(seriesId);
-    return initialTimeline?.arcs.length ? new Set([initialTimeline.arcs[0].id]) : new Set<string>();
+    return new Set<string>();
   });
   const [selectedEvent, setSelectedEvent] = useState<StoryEvent | null>(null);
   const [filterType, setFilterType] = useState<'all' | 'arcs' | 'characters' | 'locations' | 'major'>('all');
