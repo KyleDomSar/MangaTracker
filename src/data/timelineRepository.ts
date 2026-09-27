@@ -1,5 +1,4 @@
-import type { Arc, StoryEvent, Character, Location } from '../models/types';
-import type { SeriesTimeline } from '../models/types';
+import type { Arc, StoryEvent, Character, Location, SeriesTimeline } from '../models/types';
 
 /**
  * Timeline model types and compatibility helpers.
