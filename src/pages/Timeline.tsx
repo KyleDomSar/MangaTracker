@@ -10,7 +10,7 @@ import {
   getTimelineForSeries, getSeriesWithTimelines
 } from '../data/timelineRepository';
 import type { Arc, StoryEvent } from '../models/types';
-import type { SeriesTimeline } from '../data/mockTimelineData';
+import type { SeriesTimeline } from '../data/timelineRepository';
 import { supabaseTimelineRepository } from '../data/supabaseTimelineRepository';
 
 export default function TimelinePage() {
@@ -24,8 +24,37 @@ export default function TimelinePage() {
     return <SeriesTimeline seriesId={Number(seriesId)} />;
   }
 
-  // Show all available timelines
-  const seriesWithTimelines = getSeriesWithTimelines();
+  // Show all available timelines. Local fallback is intentionally empty;
+  // Supabase is the source for published timeline records.
+  const [remoteTimelines, setRemoteTimelines] = useState<SeriesTimeline[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadTimelines() {
+      const seriesIds = await supabaseTimelineRepository.getSeriesWithTimelines();
+      const timelines = await Promise.all(
+        seriesIds.map((sid) => supabaseTimelineRepository.getTimelineForSeries(sid))
+      );
+
+      if (!cancelled) {
+        setRemoteTimelines(timelines.filter((item): item is SeriesTimeline => Boolean(item)));
+      }
+    }
+
+    loadTimelines();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const localSeriesIds = getSeriesWithTimelines();
+  const localTimelines = localSeriesIds
+    .map((sid) => getTimelineForSeries(sid))
+    .filter((item): item is SeriesTimeline => Boolean(item));
+
+  const timelines = remoteTimelines.length > 0 ? remoteTimelines : localTimelines;
 
   return (
     <div className="space-y-6">
@@ -44,8 +73,8 @@ export default function TimelinePage() {
 
       {/* Available Timelines */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {seriesWithTimelines.map((sid) => {
-          const timeline = getTimelineForSeries(sid);
+        {timelines.map((timeline) => {
+          const sid = timeline.seriesId;
           if (!timeline) return null;
           const libraryItem = libraryItems.find((i) => i.mangaId === sid);
           const progress = allProgress[sid];
@@ -82,7 +111,7 @@ export default function TimelinePage() {
         })}
       </div>
 
-      {seriesWithTimelines.length === 0 && (
+      {timelines.length === 0 && (
         <EmptyState
           icon={EmptyIcons.timeline}
           title="No story timelines available"
