@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
-  ArrowLeft, Star, BookOpen, Clock, CheckCircle, Plus, Trash2,
-  ChevronRight, Lock, MapPin, Users, Zap, ExternalLink
+  ArrowLeft, Star, BookOpen, CheckCircle, Plus, Trash2,
+  ChevronRight, Users, ExternalLink
 } from 'lucide-react';
 import { getMangaDetails } from '../api/anilist';
 import { getChapterInfo } from '../api/mangabaka';
 import type { MangaDetail } from '../api/anilist';
 import { useLibraryStore, useProgressStore, useActivityStore, useSettingsStore, getLibraryStatusColor, getLibraryStatusLabel } from '../store/stores';
 import { Card, ProgressBar, Badge, LoadingSpinner, ErrorState } from '../components/UI';
-import type { SeriesTimeline } from '../models/types';
-import { supabaseTimelineRepository } from '../data/supabaseTimelineRepository';
 import type { LibraryStatus } from '../models/types';
 
 export default function MangaDetails() {
@@ -42,24 +40,6 @@ export default function MangaDetails() {
   const markChapterUnread = useProgressStore((s) => s.markChapterUnread);
   const addActivity = useActivityStore((s) => s.addActivity);
   const defaultLibraryStatus = useSettingsStore((s) => s.settings.defaultLibraryStatus);
-
-  const [timelineData, setTimelineData] = useState<SeriesTimeline | null>(null);
-  const hasTimeline = Boolean(timelineData);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadTimeline() {
-      if (!mangaId || mangaId <= 0) return;
-      const remoteTimeline = await supabaseTimelineRepository.getTimelineForSeries(mangaId);
-      if (!cancelled && remoteTimeline) setTimelineData(remoteTimeline);
-    }
-
-    loadTimeline();
-    return () => {
-      cancelled = true;
-    };
-  }, [mangaId]);
 
   useEffect(() => {
     if (!manga) return;
@@ -179,19 +159,6 @@ export default function MangaDetails() {
     setShowStatusMenu(false);
   };
 
-  // Where Was I? logic
-  const getWhereWasI = () => {
-    if (!libraryItem || !progress) return null;
-    const lastRead = progress.lastReadChapter;
-    const currentArc = timelineData?.arcs.find(
-      (arc) => lastRead >= arc.startChapter && lastRead <= arc.endChapter
-    );
-    const lastEvent = timelineData?.events
-      .filter((e) => e.chapter <= lastRead)
-      .sort((a, b) => b.chapter - a.chapter)[0];
-    return { lastRead, currentArc, lastEvent, nextChapter: lastRead + 1 };
-  };
-
   // Validate the route after all hooks have been declared.
   if (!id || isNaN(mangaId) || mangaId <= 0) {
     return (
@@ -214,9 +181,7 @@ export default function MangaDetails() {
 
   const title = manga.title.english || manga.title.romaji;
   const coverUrl = manga.coverImage.extraLarge || manga.coverImage.large;
-  const whereWasI = getWhereWasI();
-
-  // AniList does not always provide a chapter count. Never invent a total.
+   // AniList does not always provide a chapter count. Never invent a total.
   const trackedMaxChapter = Math.max(...(progress?.chaptersRead || []), progress?.lastReadChapter || 0, 0);
   const chapterListMax = chapterTotal ?? Math.max(trackedMaxChapter + 1, 1);
   const chapters = Array.from({ length: chapterListMax }, (_, i) => i + 1);
@@ -337,47 +302,6 @@ export default function MangaDetails() {
           </div>
         </div>
       </div>
-
-      {/* Where Was I? */}
-      {whereWasI && (
-        <Card className="p-5 border-violet-500/20 bg-gradient-to-r from-violet-500/5 to-transparent">
-          <div className="flex items-center gap-2 mb-3">
-            <MapPin size={16} className="text-violet-400" />
-            <h3 className="text-sm font-bold text-violet-400 uppercase tracking-wider">Where Was I?</h3>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <p className="text-xs text-gray-500">Last Read</p>
-              <p className="text-lg font-bold text-white">Chapter {whereWasI.lastRead}</p>
-            </div>
-            {whereWasI.currentArc && (
-              <div>
-                <p className="text-xs text-gray-500">Current Arc</p>
-                <p className="text-sm font-medium text-gray-200">{whereWasI.currentArc.title}</p>
-              </div>
-            )}
-            {whereWasI.lastEvent && (
-              <div>
-                <p className="text-xs text-gray-500">Last Event</p>
-                <p className="text-sm font-medium text-gray-200">{whereWasI.lastEvent.title}</p>
-              </div>
-            )}
-            <div>
-              <p className="text-xs text-gray-500">Next</p>
-              <p className="text-sm font-medium text-gray-200">Chapter {whereWasI.nextChapter}</p>
-            </div>
-          </div>
-          {hasTimeline && (
-            <Link
-              to={`/timeline/${mangaId}`}
-              className="inline-flex items-center gap-2 mt-4 px-3 py-1.5 bg-violet-500/10 text-violet-400 rounded-lg text-xs font-medium hover:bg-violet-500/20 transition-colors"
-            >
-              <Clock size={12} />
-              View Story Timeline
-            </Link>
-          )}
-        </Card>
-      )}
 
       {/* Progress Section */}
       {isInLibrary && libraryItem && (
@@ -507,33 +431,6 @@ export default function MangaDetails() {
           })}
         </div>
       </Card>
-
-      {/* Timeline Link */}
-      {hasTimeline && (
-        <Link
-          to={`/timeline/${mangaId}`}
-          className="block"
-        >
-          <Card className="p-5 hover:border-violet-500/30 transition-all group">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center">
-                  <Zap size={18} className="text-violet-400" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-gray-200 group-hover:text-violet-400 transition-colors">
-                    Story Timeline Available
-                  </h3>
-                  <p className="text-xs text-gray-500">
-                    {timelineData?.arcs.length} arcs • {timelineData?.events.length} events
-                  </p>
-                </div>
-              </div>
-              <ChevronRight size={18} className="text-gray-500 group-hover:text-violet-400 transition-colors" />
-            </div>
-          </Card>
-        </Link>
-      )}
 
       {manga.recommended && manga.recommended.length > 0 && (
         <Card className="p-5">
