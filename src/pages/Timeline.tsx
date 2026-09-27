@@ -365,15 +365,29 @@ function SeriesTimeline({ seriesId }: { seriesId: number }) {
                       className="w-full p-4 flex items-center justify-between text-left hover:bg-gray-800/20 transition-colors"
                     >
                       <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-sm font-bold text-gray-200">{arc.title}</h3>
-                          <Badge variant={arcProgress === 100 ? 'success' : arcProgress > 0 ? 'info' : 'default'}>
-                            {arcProgress}%
-                          </Badge>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Chapters {arc.startChapter}–{arc.endChapter} • {arcEvents.length} events
-                        </p>
+                        {isArcLocked ? (
+                          <>
+                            <div className="flex items-center gap-2">
+                              <Lock size={12} className="text-yellow-500/60" />
+                              <h3 className="text-sm font-bold text-gray-500">Spoiler Locked</h3>
+                            </div>
+                            <p className="text-xs text-yellow-400/60 mt-1">
+                              Unlocks at Chapter {arc.startChapter}
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <div className="flex items-center gap-2">
+                              <h3 className="text-sm font-bold text-gray-200">{arc.title}</h3>
+                              <Badge variant={arcProgress === 100 ? 'success' : arcProgress > 0 ? 'info' : 'default'}>
+                                {arcProgress}%
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Chapters {arc.startChapter}–{arc.endChapter} • {arcEvents.length} events
+                            </p>
+                          </>
+                        )}
                       </div>
                       {isExpanded ? <ChevronDown size={16} className="text-gray-500" /> : <ChevronRight size={16} className="text-gray-500" />}
                     </button>
