@@ -12,6 +12,7 @@ interface LibraryState {
   removeItem: (mangaId: number) => void;
   updateStatus: (mangaId: number, status: LibraryStatus) => void;
   updateProgress: (mangaId: number, chapter: number) => void;
+  updateTotalChapters: (mangaId: number, totalChapters: number) => void;
   getItem: (mangaId: number) => LibraryItem | undefined;
   isInLibrary: (mangaId: number) => boolean;
   clearLibrary: () => void;
@@ -66,6 +67,16 @@ export const useLibraryStore = create<LibraryState>()(
             metadata: { newStatus: status },
           });
         }
+      },
+      updateTotalChapters: (mangaId, totalChapters) => {
+        if (!Number.isFinite(totalChapters) || totalChapters <= 0) return;
+        set((state) => ({
+          items: state.items.map((i) =>
+            i.mangaId === mangaId && i.totalChapters !== totalChapters
+              ? { ...i, totalChapters, lastUpdated: new Date().toISOString() }
+              : i
+          ),
+        }));
       },
       updateProgress: (mangaId, chapter) => {
         const now = new Date().toISOString();
