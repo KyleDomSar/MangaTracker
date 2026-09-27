@@ -395,33 +395,10 @@ export async function getTrending(page: number = 1, perPage: number = 20): Promi
   }
 }
 
-export async function getPopular(page: number = 1, perPage: number = 20, genres: string[] = []): Promise<SearchResult> {
-  const cacheKey = `popular-${page}-${perPage}-${genres.join(',')}`;
+export async function getPopular(page: number = 1, perPage: number = 20, genres: string[] = [], status: string = '', sort: string = 'POPULARITY_DESC'): Promise<SearchResult> {
+  return searchManga('', page, perPage, genres, status, sort);
   const cached = getCache<SearchResult>(cacheKey);
 
-  if (cached && !isStale(cached)) {
-    return cached.data;
-  }
-
-  try {
-    const variables: Record<string, unknown> = { page, perPage };
-    if (genres.length > 0) variables.genre_in = genres;
-
-    const data = await fetchGraphQL<{ Page: { pageInfo: SearchResult['pageInfo']; media: Record<string, unknown>[] } }>(
-      POPULAR_QUERY,
-      variables
-    );
-    const result: SearchResult = {
-      pageInfo: data.Page.pageInfo,
-      manga: data.Page.media.map(mapMediaToManga),
-    };
-    setCache(cacheKey, result);
-    return result;
-  } catch (error) {
-    if (cached) return cached.data;
-    throw error;
-  }
-}
 
 export interface MangaDetail extends Manga {
   tags: { name: string; rank: number }[];
@@ -606,16 +583,16 @@ export async function getMangaDetails(id: number): Promise<MangaDetail> {
   }
 }
 
-export async function getLatest(page: number = 1, perPage: number = 20, genres: string[] = []): Promise<SearchResult> {
-  return searchManga('', page, perPage, genres, '', 'UPDATED_AT_DESC');
+export async function getLatest(page: number = 1, perPage: number = 20, genres: string[] = [], status: string = '', sort: string = 'UPDATED_AT_DESC'): Promise<SearchResult> {
+  return searchManga('', page, perPage, genres, status, sort);
 }
 
-export async function getOngoing(page: number = 1, perPage: number = 20, genres: string[] = []): Promise<SearchResult> {
-  return searchManga('', page, perPage, genres, 'RELEASING', 'POPULARITY_DESC');
+export async function getOngoing(page: number = 1, perPage: number = 20, genres: string[] = [], status: string = 'RELEASING', sort: string = 'POPULARITY_DESC'): Promise<SearchResult> {
+  return searchManga('', page, perPage, genres, status, sort);
 }
 
-export async function getCompleted(page: number = 1, perPage: number = 20, genres: string[] = []): Promise<SearchResult> {
-  return searchManga('', page, perPage, genres, 'FINISHED', 'POPULARITY_DESC');
+export async function getCompleted(page: number = 1, perPage: number = 20, genres: string[] = [], status: string = 'FINISHED', sort: string = 'POPULARITY_DESC'): Promise<SearchResult> {
+  return searchManga('', page, perPage, genres, status, sort);
 }
 
 // Available genres
