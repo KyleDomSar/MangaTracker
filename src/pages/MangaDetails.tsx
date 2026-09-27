@@ -7,7 +7,7 @@ import {
 import { getMangaDetails } from '../api/anilist';
 import { getChapterInfo } from '../api/mangabaka';
 import type { MangaDetail } from '../api/anilist';
-import { useLibraryStore, useProgressStore, useActivityStore, getLibraryStatusColor, getLibraryStatusLabel } from '../store/stores';
+import { useLibraryStore, useProgressStore, useActivityStore, useSettingsStore, getLibraryStatusColor, getLibraryStatusLabel } from '../store/stores';
 import { Card, ProgressBar, Badge, LoadingSpinner, ErrorState } from '../components/UI';
 import type { SeriesTimeline } from '../data/timelineRepository';
 import { supabaseTimelineRepository } from '../data/supabaseTimelineRepository';
@@ -39,6 +39,7 @@ export default function MangaDetails() {
   const markChapterRead = useProgressStore((s) => s.markChapterRead);
   const markChapterUnread = useProgressStore((s) => s.markChapterUnread);
   const addActivity = useActivityStore((s) => s.addActivity);
+  const defaultLibraryStatus = useSettingsStore((s) => s.settings.defaultLibraryStatus);
 
   const [timelineData, setTimelineData] = useState<SeriesTimeline | null>(null);
   const hasTimeline = Boolean(timelineData);
@@ -111,7 +112,7 @@ export default function MangaDetails() {
     loadManga();
   }, [id, mangaId, initProgress]);
 
-  const handleAddToLibrary = (status: LibraryStatus = 'READING') => {
+  const handleAddToLibrary = (status: LibraryStatus = defaultLibraryStatus) => {
     if (!manga) return;
     addItem({
       mangaId: manga.id,
@@ -145,7 +146,7 @@ export default function MangaDetails() {
           mangaId: manga.id,
           title: manga.title.english || manga.title.romaji,
           cover: manga.coverImage.extraLarge || manga.coverImage.large,
-          status: 'READING',
+          status: defaultLibraryStatus,
           currentChapter: 0,
           lastReadChapter: 0,
           nextChapter: 1,
