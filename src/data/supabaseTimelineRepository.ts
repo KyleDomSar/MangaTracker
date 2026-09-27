@@ -50,7 +50,7 @@ type LocationRow = {
  * Async Supabase provider for public timeline content.
  *
  * It intentionally returns null when Supabase is not configured or a query
- * fails. The UI can then fall back to the existing local repository.
+ * fails. Published timeline content has no local hardcoded fallback.
  */
 export const supabaseTimelineRepository = {
   isAvailable: () => isSupabaseConfigured && Boolean(supabase),
