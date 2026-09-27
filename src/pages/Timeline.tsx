@@ -17,8 +17,12 @@ export default function TimelinePage() {
 
   // Supabase is the source for published timeline records.
   const [remoteTimelines, setRemoteTimelines] = useState<SeriesTimeline[]>([]);
+  const [isLoadingTimelines, setIsLoadingTimelines] = useState(true);
 
   useEffect(() => {
+    if (seriesId) return;
+
+    setIsLoadingTimelines(true);
     if (seriesId) return;
 
     let cancelled = false;
@@ -31,6 +35,7 @@ export default function TimelinePage() {
 
       if (!cancelled) {
         setRemoteTimelines(timelines.filter((item): item is SeriesTimeline => Boolean(item)));
+        setIsLoadingTimelines(false);
       }
     }
 
@@ -64,8 +69,18 @@ export default function TimelinePage() {
       </div>
 
       {/* Available Timelines */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {timelines.map((timeline) => {
+      {isLoadingTimelines ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3].map((item) => (
+            <Card key={item} className="p-5 h-24 animate-pulse">
+              <div className="h-4 w-32 bg-gray-800 rounded" />
+              <div className="h-3 w-48 bg-gray-800/70 rounded mt-3" />
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {timelines.map((timeline) => {
           const sid = timeline.seriesId;
           if (!timeline) return null;
           const libraryItem = libraryItems.find((i) => i.mangaId === sid);
@@ -100,10 +115,11 @@ export default function TimelinePage() {
               </Card>
             </Link>
           );
-        })}
-      </div>
+          })}
+        </div>
+      )}
 
-      {timelines.length === 0 && (
+      {!isLoadingTimelines && timelines.length === 0 && (
         <EmptyState
           icon={EmptyIcons.timeline}
           title="No story timelines available"
@@ -117,6 +133,7 @@ export default function TimelinePage() {
 // Series Timeline Component
 function SeriesTimeline({ seriesId }: { seriesId: number }) {
   const [timeline, setTimeline] = useState<SeriesTimeline | null>(null);
+  const [isLoadingTimeline, setIsLoadingTimeline] = useState(true);
   const [expandedArcs, setExpandedArcs] = useState<Set<string>>(() => {
     return new Set<string>();
   });
@@ -130,14 +147,18 @@ function SeriesTimeline({ seriesId }: { seriesId: number }) {
 
   useEffect(() => {
     let cancelled = false;
+    setIsLoadingTimeline(true);
     async function loadTimeline() {
       const remoteTimeline = await supabaseTimelineRepository.getTimelineForSeries(seriesId);
-      if (!cancelled && remoteTimeline) {
+      if (!cancelled) {
         setTimeline(remoteTimeline);
-        setExpandedArcs((current) => {
-          if (current.size > 0) return current;
-          return remoteTimeline.arcs.length ? new Set([remoteTimeline.arcs[0].id]) : new Set<string>();
-        });
+        if (remoteTimeline) {
+          setExpandedArcs((current) => {
+            if (current.size > 0) return current;
+            return remoteTimeline.arcs.length ? new Set([remoteTimeline.arcs[0].id]) : new Set<string>();
+          });
+        }
+        setIsLoadingTimeline(false);
       }
     }
     loadTimeline();
@@ -145,6 +166,25 @@ function SeriesTimeline({ seriesId }: { seriesId: number }) {
       cancelled = true;
     };
   }, [seriesId]);
+
+  if (isLoadingTimeline) {
+    return (
+      <div className="space-y-6">
+        <Link to="/timeline" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm">
+          <ArrowLeft size={16} />
+          Back to Timelines
+        </Link>
+        <Card className="p-6 animate-pulse">
+          <div className="h-5 w-40 bg-gray-800 rounded" />
+          <div className="h-3 w-64 bg-gray-800/70 rounded mt-3" />
+          <div className="space-y-3 mt-6">
+            <div className="h-20 bg-gray-800/50 rounded-xl" />
+            <div className="h-20 bg-gray-800/50 rounded-xl" />
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   if (!timeline) {
     return (
@@ -263,16 +303,39 @@ function SeriesTimeline({ seriesId }: { seriesId: number }) {
       {/* Locations View */}
       {filterType === 'locations' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {timeline.locations.map((loc) => (
-            <Card key={loc.id} className="p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <MapPin size={14} className="text-violet-400" />
-                <h3 className="text-sm font-bold text-gray-200">{loc.name}</h3>
-              </div>
-              <p className="text-xs text-gray-400">{loc.description}</p>
-              <p className="text-xs text-gray-600 mt-2">{loc.relatedEvents.length} related events</p>
-            </Card>
-          ))}
+          {timeline.locations.map((loc) => {
+            const relatedEvents = timeline.events.filter((event) => loc.relatedEvents.includes(event.id));
+            const firstAppearance = relatedEvents.length
+              ? Math.min(...relatedEvents.map((event) => event.chapter))
+              : null;
+            const isLocked = spoilerProtection && firstAppearance !== null && firstAppearance > userChapter;
+
+            return (
+              <Card key={loc.id} className={`p-4 ${isLocked ? 'opacity-60' : ''}`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <MapPin size={14} className="text-violet-400" />
+                  {isLocked ? (
+                    <div className="flex items-center gap-2">
+                      <Lock size={12} className="text-yellow-500/60" />
+                      <h3 className="text-sm font-bold text-gray-500">Spoiler Locked</h3>
+                    </div>
+                  ) : (
+                    <h3 className="text-sm font-bold text-gray-200">{loc.name}</h3>
+                  )}
+                </div>
+                {isLocked ? (
+                  <p className="text-xs text-yellow-400/60">
+                    Unlocks at Chapter {firstAppearance}
+                  </p>
+                ) : (
+                  <>
+                    <p className="text-xs text-gray-400">{loc.description}</p>
+                    <p className="text-xs text-gray-600 mt-2">{loc.relatedEvents.length} related events</p>
+                  </>
+                )}
+              </Card>
+            );
+          })}
         </div>
       )}
 
