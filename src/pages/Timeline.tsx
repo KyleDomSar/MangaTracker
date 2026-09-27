@@ -17,26 +17,48 @@ export default function TimelinePage() {
   const [remoteTimelines, setRemoteTimelines] = useState<SeriesTimeline[]>([]);
   const [isLoadingTimelines, setIsLoadingTimelines] = useState(true);
 
+  // Use a stable key so the timeline list reloads whenever the persisted
+  // Library membership changes, even if the array reference is reused.
+  const librarySeriesKey = libraryItems
+    .map((item) => Number(item.mangaId))
+    .filter((id) => Number.isFinite(id))
+    .sort((a, b) => a - b)
+    .join(',');
+
   useEffect(() => {
     if (seriesId) return;
-
-    setIsLoadingTimelines(true);
 
     let cancelled = false;
 
     async function loadTimelines() {
-      // Supabase remains the source of truth for which published timelines exist.
-      // Library remains the source of truth for which of those timelines the user tracks.
-      const availableSeriesIds = await supabaseTimelineRepository.getSeriesWithTimelines();
-      const libraryIds = new Set(libraryItems.map((item) => item.mangaId));
-      const librarySeriesIds = availableSeriesIds.filter((id) => libraryIds.has(id));
+      setIsLoadingTimelines(true);
+
+      // Library is the source of truth for what the user tracks.
+      // Supabase is the source of truth for the curated timeline content.
+      // Query each Library manga directly instead of first discovering all
+      // Supabase timelines, which avoids a hydration/filter mismatch.
+      const librarySeriesIds = [...new Set(
+        libraryItems
+          .map((item) => Number(item.mangaId))
+          .filter((id) => Number.isFinite(id))
+      )];
+
+      if (librarySeriesIds.length === 0) {
+        if (!cancelled) {
+          setRemoteTimelines([]);
+          setIsLoadingTimelines(false);
+        }
+        return;
+      }
 
       const timelines = await Promise.all(
         librarySeriesIds.map((id) => supabaseTimelineRepository.getTimelineForSeries(id))
       );
 
       if (!cancelled) {
-        setRemoteTimelines(timelines.filter((item): item is SeriesTimeline => Boolean(item)));
+        setRemoteTimelines(
+          timelines.filter((item): item is SeriesTimeline => Boolean(item))
+        );
         setIsLoadingTimelines(false);
       }
     }
@@ -46,7 +68,7 @@ export default function TimelinePage() {
     return () => {
       cancelled = true;
     };
-  }, [seriesId, libraryItems]);
+  }, [seriesId, librarySeriesKey]);
 
   // If a specific series is selected, render it only after all hooks above.
   if (seriesId) {
