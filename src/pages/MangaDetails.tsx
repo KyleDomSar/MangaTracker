@@ -8,7 +8,7 @@ import { getMangaDetails } from '../api/anilist';
 import type { MangaDetail } from '../api/anilist';
 import { useLibraryStore, useProgressStore, useActivityStore, getLibraryStatusColor, getLibraryStatusLabel } from '../store/stores';
 import { Card, ProgressBar, Badge, LoadingSpinner, ErrorState } from '../components/UI';
-import { hasTimelineData, getTimelineForSeries } from '../data/mockTimelineData';
+import { hasTimelineData, getTimelineForSeries } from '../data/timelineRepository';
 import type { LibraryStatus } from '../models/types';
 
 export default function MangaDetails() {
