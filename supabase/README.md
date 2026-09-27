@@ -17,4 +17,4 @@ The timeline database is intentionally separate from AniList:
 - Supabase: curated story arcs, events, characters, and locations.
 - User progress: remains separate from public timeline content.
 
-The app still uses the local timeline repository as a fallback. This prevents the current app from breaking before a Supabase project is configured and the repository is switched to async database reads.
+The local timeline repository is intentionally empty. It does not contain demo manga or hardcoded story data. When Supabase is configured, published timelines are loaded from the database.
