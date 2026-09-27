@@ -1,103 +1,73 @@
-# 📖 ManhwaTimeline
+# MangaTracker
 
-Ang **ManhwaTimeline** ay isang modern web application para sa pag-track ng iyong manga at manhwa reading journey.
+MangaTracker is a modern web application for managing a personal manga and manhwa reading library.
 
-## ✨ Features
+## Features
 
-- 🏠 **Dashboard** - Tingnan ang iyong reading progress at statistics
-- 🔍 **Discover** - Maghanap ng bagong manga at manhwa mula sa AniList API
-- 📚 **Library** - I-manage ang iyong personal na manga collection
-- 📖 **Manga Details** - Tingnan ang detalye ng bawat manga
-- 📊 **Reading Progress** - I-track ang iyong chapter progress
-- 🕐 **Story Timeline** - Explore story arcs at events (with spoiler protection!)
-- 📍 **Where Was I?** - Alamin kung saan ka tumigil sa pagbabasa
-- 🔒 **Spoiler Protection** - Auto-lock ng events beyond your reading progress
-- 📋 **Activity Feed** - Tingnan ang iyong reading history
-- 👤 **Profile** - View your reading statistics
-- ⚙️ **Settings** - Manage your preferences
-- 💾 **Persistent Storage** - Lahat ng data ay naka-save sa localStorage
-- 🌐 **Offline Mode** - Gumagana kahit walang internet (cached data)
-- 📱 **Responsive Design** - Desktop at mobile friendly
+- Dashboard with reading statistics
+- Discover manga and manhwa through AniList
+- Personal Library with reading statuses
+- Manga Details with synopsis, creators, characters, recommendations, and relations
+- Chapter-by-chapter reading progress
+- Real chapter count lookup through MangaBaka when AniList does not provide one
+- Mark chapters as read or unread
+- Automatic completion when the final known chapter is reached
+- Activity history for library and reading actions
+- Profile and reading statistics
+- Settings for library and data management
+- Persistent browser storage through Zustand
+- Responsive desktop and mobile interface
 
-## 🛠️ Tech Stack
+## Tech Stack
 
-- **Frontend:** React 18 + TypeScript
-- **Build Tool:** Vite
-- **Styling:** Tailwind CSS
-- **State Management:** Zustand
-- **Routing:** React Router
-- **API:** AniList GraphQL API
-- **Icons:** Lucide React
+- React 18
+- TypeScript
+- Vite
+- Tailwind CSS
+- Zustand
+- React Router
+- AniList GraphQL API
+- MangaBaka API
+- Lucide React
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
-# Clone the repository
-git clone https://github.com/YOUR_USERNAME/manhwa-timeline.git
-cd manhwa-timeline
-
-# Install dependencies
+git clone https://github.com/YOUR_USERNAME/manga-tracker.git
+cd manga-tracker
 npm install
-
-# Run development server
 npm run dev
 ```
 
-Pagkatapos, buksan ang `http://localhost:3000` sa iyong browser.
+Then open the local Vite development URL shown in the terminal.
 
-## 📦 Build for Production
+## Build
 
 ```bash
 npm run build
 ```
 
-Ang output ay nasa `dist/` folder.
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 src/
-├── api/              # API integration (AniList)
+├── api/              # AniList and MangaBaka API integration
 ├── components/       # Reusable UI components
-├── data/             # Mock timeline data
-├── layouts/          # Layout components
+├── layouts/          # Application layout and navigation
 ├── models/           # TypeScript types
-├── pages/            # Page components
+├── pages/            # Application pages
 ├── store/            # Zustand stores
-├── App.tsx           # Main app component
+├── App.tsx           # Application routes
 ├── main.tsx          # Entry point
 └── index.css         # Global styles
 ```
 
-## 🎯 Key Features Explained
+## Data
 
-### Story Timeline
-Ang signature feature ng app! Nagpapakita ng story arcs at events para sa mga popular na manga. May spoiler protection na auto-locks ng events beyond your current reading progress.
+- AniList provides manga metadata and catalog information.
+- MangaBaka is used as an additional source for chapter totals when available.
+- Library, reading progress, activity history, and settings are persisted locally in the browser.
 
-### Where Was I?
-Kapag bumalik ka sa isang manga, ipapakita nito:
-- Last read chapter
-- Current arc
-- Last story event
-- Next chapter to read
+## License
 
-### Activity Tracking
-Lahat ng actions (add to library, read chapter, etc.) ay naka-record sa activity feed, grouped by date.
-
-## 📝 Note
-
-- Ang manga data ay galing sa [AniList API](https://anilist.co/)
-- Ang story timeline data ay curated demo data para sa demonstration
-- Lahat ng user data ay naka-store locally sa browser (localStorage)
-
-## 🤝 Contributing
-
-Feel free to fork, modify, at mag-submit ng pull requests!
-
-## 📄 License
-
-MIT License - feel free to use this project for learning or personal use.
-
----
-
-Made with ❤️ for manga and manhwa readers
+MIT License
