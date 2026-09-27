@@ -1,7 +1,7 @@
 -- ManhwaTimeline timeline database
 -- Run this in the Supabase SQL editor when a Supabase project is connected.
--- The frontend can keep using the local repository until NEXT_PUBLIC_SUPABASE_URL
--- and NEXT_PUBLIC_SUPABASE_ANON_KEY are configured.
+-- The frontend reads published timeline content from Supabase when VITE_SUPABASE_URL
+-- and VITE_SUPABASE_ANON_KEY are configured.
 
 create table if not exists public.timeline_series (
   series_id bigint primary key,
@@ -70,6 +70,12 @@ alter table public.timeline_arcs enable row level security;
 alter table public.timeline_events enable row level security;
 alter table public.timeline_characters enable row level security;
 alter table public.timeline_locations enable row level security;
+
+drop policy if exists "Public can read timeline series" on public.timeline_series;
+drop policy if exists "Public can read timeline arcs" on public.timeline_arcs;
+drop policy if exists "Public can read timeline events" on public.timeline_events;
+drop policy if exists "Public can read timeline characters" on public.timeline_characters;
+drop policy if exists "Public can read timeline locations" on public.timeline_locations;
 
 create policy "Public can read timeline series"
   on public.timeline_series for select using (true);
