@@ -233,44 +233,6 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Recent Activity */}
-      {activities.length > 0 && (
-        <div>
-          <SectionHeader
-            title="Recent Activity"
-            action={
-              <Link to="/activity" className="text-sm text-violet-400 hover:text-violet-300 flex items-center gap-1">
-                View All <ArrowRight size={14} />
-              </Link>
-            }
-          />
-          <Card className="divide-y divide-gray-800/50">
-            {activities.map((activity) => (
-              <Link
-                key={activity.id}
-                to={`/manga/${activity.mangaId}`}
-                className="flex items-center gap-3 p-4 hover:bg-gray-800/20 transition-colors"
-              >
-                <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0">
-                  <img src={activity.cover} alt="" className="w-full h-full object-cover" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-300">
-                    <span className="font-medium text-gray-200">{activity.mangaTitle}</span>
-                    {' — '}
-                    {activity.type === 'CHAPTER_READ' ? `Read Chapter ${activity.chapter}` : getActivityLabel(activity.type)}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    {new Date(activity.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </p>
-                </div>
-                <TrendingUp size={14} className="text-gray-600" />
-              </Link>
-            ))}
-          </Card>
-        </div>
-      )}
-
       {/* Recently Added */}
       {recentlyAdded.length > 0 && (
         <div>
@@ -315,6 +277,44 @@ export default function Dashboard() {
             : trending.map((manga) => <MangaCard key={manga.id} manga={manga} />)
           }
         </div>
+      {/* Recent Activity */}
+      {activities.length > 0 && (
+        <div>
+          <SectionHeader
+            title="Recent Activity"
+            action={
+              <Link to="/activity" className="text-sm text-violet-400 hover:text-violet-300 flex items-center gap-1">
+                View All <ArrowRight size={14} />
+              </Link>
+            }
+          />
+          <Card className="divide-y divide-gray-800/50">
+            {activities.map((activity) => (
+              <Link
+                key={activity.id}
+                to={`/manga/${activity.mangaId}`}
+                className="flex items-center gap-3 p-4 hover:bg-gray-800/20 transition-colors"
+              >
+                <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0">
+                  <img src={activity.cover} alt="" className="w-full h-full object-cover" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-gray-300">
+                    <span className="font-medium text-gray-200">{activity.mangaTitle}</span>
+                    {' — '}
+                    {activity.type === 'CHAPTER_READ' ? `Read Chapter ${activity.chapter}` : getActivityLabel(activity.type)}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {new Date(activity.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+                <TrendingUp size={14} className="text-gray-600" />
+              </Link>
+            ))}
+          </Card>
+        </div>
+      )}
+
       </div>
     </div>
   );
