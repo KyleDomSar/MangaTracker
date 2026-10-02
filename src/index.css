@@ -9,6 +9,25 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  .genre-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .genre-filters button {
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 639px) {
+    .genre-filters {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+    }
+  }
+
 }
 
 /* Global styles */
