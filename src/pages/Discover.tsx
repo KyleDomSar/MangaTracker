@@ -20,6 +20,7 @@ export default function Discover() {
   const [selectedSort, setSelectedSort] = useState('POPULARITY_DESC');
   const [showFilters, setShowFilters] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const requestIdRef = useRef(0);
 
   // Debounced search
   const debouncedSearch = useCallback((query: string) => {
@@ -34,6 +35,8 @@ export default function Discover() {
 
   // Load data
   useEffect(() => {
+    const requestId = ++requestIdRef.current;
+
     async function loadData() {
       setLoading(true);
       setError(null);
@@ -52,14 +55,21 @@ export default function Discover() {
         } else {
           result = await getTrending(page, 24);
         }
+
+        if (requestId !== requestIdRef.current) return;
+
         setManga(result.manga);
         setTotalPages(result.pageInfo.lastPage);
       } catch (err) {
+        if (requestId !== requestIdRef.current) return;
         setError(err instanceof Error ? err.message : 'Failed to load manga');
       } finally {
-        setLoading(false);
+        if (requestId === requestIdRef.current) {
+          setLoading(false);
+        }
       }
     }
+
     loadData();
   }, [activeTab, page, searchQuery, selectedGenres, selectedStatus, selectedSort]);
 
@@ -67,9 +77,21 @@ export default function Discover() {
     setSearchQuery(value);
     debouncedSearch(value);
     if (!value.trim()) {
+      setManga([]);
       setActiveTab('popular');
       setPage(1);
     }
+  };
+
+  const handleTabChange = (tab: Tab) => {
+    if (tab === activeTab) {
+      setPage(1);
+      return;
+    }
+
+    setManga([]);
+    setActiveTab(tab);
+    setPage(1);
   };
 
   const toggleGenre = (genre: string) => {
@@ -128,7 +150,7 @@ export default function Discover() {
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => { setActiveTab(tab.id); setPage(1); }}
+              onClick={() => handleTabChange(tab.id)}
               className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap flex-shrink-0 transition-all ${
                 activeTab === tab.id
                   ? 'bg-violet-500/20 text-violet-400'
