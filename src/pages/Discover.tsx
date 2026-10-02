@@ -226,14 +226,14 @@ export default function Discover() {
           </div>
 
           {/* Status & Sort */}
-          <div className="flex flex-wrap gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[auto_auto_1fr] gap-4">
             <div>
               <p className="text-sm font-medium text-gray-400 mb-2">Status</p>
               <div className="relative">
                 <select
                   value={selectedStatus}
-                  onChange={(e) => { setSelectedStatus(e.target.value); setPage(1); }}
-                  className="appearance-none w-full min-w-[150px] pr-9 pl-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-300 focus:outline-none focus:border-violet-500/50 cursor-pointer"
+                  onChange={(e) => { setManga([]); setSelectedStatus(e.target.value); setPage(1); }}
+                  className="appearance-none w-full min-w-0 sm:min-w-[170px] pr-9 pl-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-300 focus:outline-none focus:border-violet-500/50 cursor-pointer"
                 >
                   {STATUS_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -250,7 +250,7 @@ export default function Discover() {
               <div className="relative">
                 <select
                   value={selectedSort}
-                  onChange={(e) => { setSelectedSort(e.target.value); setPage(1); }}
+                  onChange={(e) => { setManga([]); setSelectedSort(e.target.value); setPage(1); }}
                   className="appearance-none w-full min-w-[150px] pr-9 pl-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-300 focus:outline-none focus:border-violet-500/50 cursor-pointer"
                 >
                   {SORT_OPTIONS.map((opt) => (
