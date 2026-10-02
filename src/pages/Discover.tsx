@@ -84,13 +84,20 @@ export default function Discover() {
   };
 
   const handleTabChange = (tab: Tab) => {
-    if (tab === activeTab) {
-      setPage(1);
-      return;
-    }
+    const tabDefaults: Record<Tab, { status: string; sort: string }> = {
+      popular: { status: '', sort: 'POPULARITY_DESC' },
+      latest: { status: '', sort: 'UPDATED_AT_DESC' },
+      ongoing: { status: 'RELEASING', sort: 'POPULARITY_DESC' },
+      completed: { status: 'FINISHED', sort: 'POPULARITY_DESC' },
+      search: { status: selectedStatus, sort: selectedSort },
+    };
+
+    const defaults = tabDefaults[tab];
 
     setManga([]);
     setActiveTab(tab);
+    setSelectedStatus(defaults.status);
+    setSelectedSort(defaults.sort);
     setPage(1);
   };
 
@@ -102,9 +109,19 @@ export default function Discover() {
   };
 
   const clearFilters = () => {
+    const tabDefaults: Record<Tab, { status: string; sort: string }> = {
+      popular: { status: '', sort: 'POPULARITY_DESC' },
+      latest: { status: '', sort: 'UPDATED_AT_DESC' },
+      ongoing: { status: 'RELEASING', sort: 'POPULARITY_DESC' },
+      completed: { status: 'FINISHED', sort: 'POPULARITY_DESC' },
+      search: { status: '', sort: 'SEARCH_MATCH' },
+    };
+
+    const defaults = tabDefaults[activeTab];
+
     setSelectedGenres([]);
-    setSelectedStatus('');
-    setSelectedSort('POPULARITY_DESC');
+    setSelectedStatus(defaults.status);
+    setSelectedSort(defaults.sort);
     setPage(1);
   };
 
