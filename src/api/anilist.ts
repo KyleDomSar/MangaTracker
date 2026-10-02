@@ -632,5 +632,4 @@ export const STATUS_OPTIONS = [
   { value: 'FINISHED', label: 'Finished' },
   { value: 'NOT_YET_RELEASED', label: 'Not Yet Released' },
   { value: 'CANCELLED', label: 'Cancelled' },
-  { value: 'HIATUS', label: 'Hiatus' },
 ];
