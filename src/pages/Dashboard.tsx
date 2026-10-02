@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, TrendingUp, CheckCircle, Clock, AlertTriangle, Library, ArrowRight, Sparkles } from 'lucide-react';
-import { useLibraryStore, useActivityStore, getActivityLabel } from '../store/stores';
+import { BookOpen, TrendingUp, CheckCircle, Clock, AlertTriangle, Library, ArrowRight, Sparkles, Target, BarChart3 } from 'lucide-react';
+import { useLibraryStore, useActivityStore, useProgressStore, getActivityLabel } from '../store/stores';
 import { Card, SectionHeader, ProgressBar, EmptyState, EmptyIcons } from '../components/UI';
 import MangaCard, { MangaCardSkeleton } from '../components/MangaCard';
 import { getPopular } from '../api/anilist';
@@ -11,6 +11,7 @@ export default function Dashboard() {
   const items = useLibraryStore((s) => s.items);
   const allActivities = useActivityStore((s) => s.activities);
   const activities = allActivities.slice(0, 5);
+  const progressMap = useProgressStore((s) => s.progress);
 
   const [trending, setTrending] = React.useState<Manga[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -35,6 +36,24 @@ export default function Dashboard() {
   const planToRead = items.filter((i) => i.status === 'PLAN_TO_READ').length;
   const dropped = items.filter((i) => i.status === 'DROPPED').length;
   const totalLibrary = items.length;
+
+  // Reading overview
+  const totalChaptersRead = Object.values(progressMap).reduce(
+    (total, progress) => total + progress.chaptersRead.length,
+    0
+  );
+  const trackedSeries = Object.values(progressMap).filter(
+    (progress) => progress.chaptersRead.length > 0
+  ).length;
+  const progressPercentages = items
+    .map((item) => {
+      if (!item.totalChapters || item.totalChapters <= 0) return null;
+      return Math.min(100, (item.currentChapter / item.totalChapters) * 100);
+    })
+    .filter((value): value is number => value !== null);
+  const averageProgress = progressPercentages.length > 0
+    ? Math.round(progressPercentages.reduce((sum, value) => sum + value, 0) / progressPercentages.length)
+    : 0;
 
   // Continue reading items
   const continueReading = items
@@ -68,7 +87,7 @@ export default function Dashboard() {
             Continue your journey
           </h1>
           <p className="text-gray-400 text-sm lg:text-base max-w-lg">
-            Track your manga and manhwa, remember where you left off, and explore story timelines.
+            Track your manga and manhwa, remember where you left off, and keep your reading progress organized.
           </p>
           {totalLibrary === 0 && (
             <Link
@@ -96,6 +115,48 @@ export default function Dashboard() {
               <p className="text-xs text-gray-500 mt-1">{stat.label}</p>
             </Card>
           ))}
+        </div>
+      </div>
+
+      {/* Reading Overview */}
+      <div>
+        <SectionHeader title="Reading Overview" />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center">
+                <BookOpen size={18} className="text-violet-400" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-white">{totalChaptersRead}</p>
+                <p className="text-xs text-gray-500">Chapters Read</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                <Target size={18} className="text-blue-400" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-white">{trackedSeries}</p>
+                <p className="text-xs text-gray-500">Series Tracked</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
+                <BarChart3 size={18} className="text-green-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-2xl font-bold text-white">{averageProgress}%</p>
+                <p className="text-xs text-gray-500">Average Progress</p>
+              </div>
+            </div>
+          </Card>
         </div>
       </div>
 
