@@ -159,6 +159,19 @@ export default function MangaDetails() {
     setShowStatusMenu(false);
   };
 
+  const handleMarkNextChapter = () => {
+    if (!manga) return;
+    const next = (progress?.currentChapter || 0) + 1;
+    if (chapterTotal && next > chapterTotal) return;
+    handleMarkChapter(next, true);
+  };
+
+  const handleMarkCurrentUnread = () => {
+    const currentChapter = progress?.lastReadChapter || 0;
+    if (currentChapter <= 0) return;
+    handleMarkChapter(currentChapter, false);
+  };
+
   // Validate the route after all hooks have been declared.
   if (!id || isNaN(mangaId) || mangaId <= 0) {
     return (
@@ -306,30 +319,65 @@ export default function MangaDetails() {
       {/* Progress Section */}
       {isInLibrary && libraryItem && (
         <Card className="p-5">
-          <h3 className="text-sm font-bold text-gray-300 mb-3">Reading Progress</h3>
-          <div className="flex items-center gap-4 mb-3">
-            <p className="text-2xl font-bold text-white">{libraryItem.currentChapter}</p>
-            <p className="text-gray-500">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div>
+              <h3 className="text-sm font-bold text-gray-300">Reading Progress</h3>
+              <p className="text-xs text-gray-600 mt-1">
+                {chapterLookupLoading
+                  ? 'Checking chapter count...'
+                  : chapterSource
+                    ? `Total from ${chapterSource}`
+                    : 'Chapter count unavailable'}
+              </p>
+            </div>
+            {chapterTotal && (
+              <p className="text-sm font-medium text-violet-400">
+                {Math.min(100, Math.round((libraryItem.currentChapter / chapterTotal) * 100))}%
+              </p>
+            )}
+          </div>
+
+          <div className="flex items-end gap-2 mt-5 mb-3">
+            <p className="text-3xl font-bold text-white">{libraryItem.currentChapter}</p>
+            <p className="text-sm text-gray-500 mb-1">
               {chapterTotal ? `/ ${chapterTotal} chapters` : '/ total unavailable'}
             </p>
           </div>
+
           <ProgressBar
             value={libraryItem.currentChapter}
             max={chapterTotal || Math.max(libraryItem.currentChapter, 1)}
           />
-          <div className="flex items-center justify-between gap-3 mt-3">
-            <p className="text-xs text-gray-600">
-              {chapterLookupLoading ? 'Checking chapter count...' : chapterSource ? `Total from ${chapterSource}` : 'Chapter count unavailable'}
-            </p>
+
+          <div className="grid grid-cols-2 gap-3 mt-4">
+            <div className="rounded-xl bg-gray-800/30 border border-gray-800/50 p-3">
+              <p className="text-[11px] uppercase tracking-wide text-gray-600">Last Read</p>
+              <p className="text-sm text-gray-300 mt-1">
+                {libraryItem.lastReadChapter > 0 ? `Chapter ${libraryItem.lastReadChapter}` : 'Not started'}
+              </p>
+            </div>
+            <div className="rounded-xl bg-gray-800/30 border border-gray-800/50 p-3">
+              <p className="text-[11px] uppercase tracking-wide text-gray-600">Next Chapter</p>
+              <p className="text-sm text-gray-300 mt-1">
+                {chapterTotal && libraryItem.nextChapter > chapterTotal ? 'Completed' : `Chapter ${libraryItem.nextChapter}`}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2 mt-4">
             <button
-              onClick={() => {
-                const next = libraryItem.currentChapter + 1;
-                if (chapterTotal && next > chapterTotal) return;
-                handleMarkChapter(next, true);
-              }}
-              className="px-3 py-1.5 bg-violet-500/10 text-violet-400 rounded-lg text-xs font-medium hover:bg-violet-500/20 transition-colors"
+              onClick={handleMarkNextChapter}
+              disabled={Boolean(chapterTotal && libraryItem.currentChapter >= chapterTotal)}
+              className="px-3 py-2 bg-violet-500 text-white rounded-lg text-xs font-medium hover:bg-violet-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              Mark Next Chapter
+              {chapterTotal && libraryItem.currentChapter >= chapterTotal ? 'Completed' : 'Mark Next Chapter'}
+            </button>
+            <button
+              onClick={handleMarkCurrentUnread}
+              disabled={!progress?.lastReadChapter}
+              className="px-3 py-2 bg-gray-800/50 text-gray-300 border border-gray-700/50 rounded-lg text-xs font-medium hover:text-white hover:border-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Mark Current Unread
             </button>
           </div>
         </Card>
