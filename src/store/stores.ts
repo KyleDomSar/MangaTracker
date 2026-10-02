@@ -237,9 +237,14 @@ export const useProgressStore = create<ProgressState>()(
             lastReadDate: null,
             chaptersRead: [],
           };
-          const chaptersRead = existing.chaptersRead.includes(chapter)
-            ? existing.chaptersRead
-            : [...existing.chaptersRead, chapter].sort((a, b) => a - b);
+          // Reading a later chapter means the skipped chapters before it
+          // are also treated as read for progress tracking.
+          const chaptersRead = Array.from(
+            new Set([
+              ...existing.chaptersRead,
+              ...Array.from({ length: Math.max(0, chapter) }, (_, index) => index + 1),
+            ])
+          ).sort((a, b) => a - b);
           return {
             progress: {
               ...state.progress,
