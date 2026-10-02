@@ -596,9 +596,25 @@ export async function getCompleted(page: number = 1, perPage: number = 20, genre
 
 // Available genres
 export const AVAILABLE_GENRES = [
-  'Action', 'Adventure', 'Comedy', 'Drama', 'Fantasy',
-  'Horror', 'Mystery', 'Psychological', 'Romance', 'Sci-Fi',
-  'Slice of Life', 'Sports', 'Supernatural', 'Thriller',
+  'Action',
+  'Adventure',
+  'Comedy',
+  'Drama',
+  'Ecchi',
+  'Fantasy',
+  'Hentai',
+  'Horror',
+  'Mahou Shoujo',
+  'Mecha',
+  'Music',
+  'Mystery',
+  'Psychological',
+  'Romance',
+  'Sci-Fi',
+  'Slice of Life',
+  'Sports',
+  'Supernatural',
+  'Thriller',
 ];
 
 export const SORT_OPTIONS = [
