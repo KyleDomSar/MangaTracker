@@ -277,6 +277,8 @@ export default function Dashboard() {
             : trending.map((manga) => <MangaCard key={manga.id} manga={manga} />)
           }
         </div>
+      </div>
+
       {/* Recent Activity */}
       {activities.length > 0 && (
         <div>
@@ -314,8 +316,6 @@ export default function Dashboard() {
           </Card>
         </div>
       )}
-
-      </div>
     </div>
   );
 }
