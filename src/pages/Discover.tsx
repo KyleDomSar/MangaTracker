@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Search, Filter, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Search, Filter, ChevronLeft, ChevronRight, ChevronDown, X } from 'lucide-react';
 import { searchManga, getPopular, getTrending, getLatest, getOngoing, getCompleted, AVAILABLE_GENRES, SORT_OPTIONS, STATUS_OPTIONS } from '../api/anilist';
 import MangaCard, { MangaCardSkeleton } from '../components/MangaCard';
 import { Card, EmptyState, EmptyIcons, ErrorState } from '../components/UI';
@@ -229,27 +229,39 @@ export default function Discover() {
           <div className="flex flex-wrap gap-4">
             <div>
               <p className="text-sm font-medium text-gray-400 mb-2">Status</p>
-              <select
-                value={selectedStatus}
-                onChange={(e) => { setSelectedStatus(e.target.value); setPage(1); }}
-                className="px-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-300 focus:outline-none focus:border-violet-500/50"
-              >
-                {STATUS_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => { setSelectedStatus(e.target.value); setPage(1); }}
+                  className="appearance-none w-full min-w-[150px] pr-9 pl-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-300 focus:outline-none focus:border-violet-500/50 cursor-pointer"
+                >
+                  {STATUS_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+                <ChevronDown
+                  size={15}
+                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                />
+              </div>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-400 mb-2">Sort By</p>
-              <select
-                value={selectedSort}
-                onChange={(e) => { setSelectedSort(e.target.value); setPage(1); }}
-                className="px-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-300 focus:outline-none focus:border-violet-500/50"
-              >
-                {SORT_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  value={selectedSort}
+                  onChange={(e) => { setSelectedSort(e.target.value); setPage(1); }}
+                  className="appearance-none w-full min-w-[150px] pr-9 pl-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-300 focus:outline-none focus:border-violet-500/50 cursor-pointer"
+                >
+                  {SORT_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+                <ChevronDown
+                  size={15}
+                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                />
+              </div>
             </div>
             {(selectedGenres.length > 0 || selectedStatus) && (
               <div className="flex items-end">
