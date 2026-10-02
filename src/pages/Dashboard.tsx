@@ -173,37 +173,61 @@ export default function Dashboard() {
           />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {continueReading.map((item) => (
-              <Link
+              <Card
                 key={item.mangaId}
-                to={`/manga/${item.mangaId}`}
-                className="group"
+                className="p-4 hover:border-violet-500/30 transition-all duration-200"
               >
-                <Card className="p-4 hover:border-violet-500/30 transition-all duration-200">
-                  <div className="flex gap-3">
-                    <div className="w-14 h-20 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0">
-                      <img src={item.cover} alt={item.title} className="w-full h-full object-cover" />
-                    </div>
-                    <div className="flex-1 min-w-0">
+                <div className="flex gap-3">
+                  <Link
+                    to={`/manga/${item.mangaId}`}
+                    className="w-14 h-20 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0"
+                    aria-label={`Open ${item.title}`}
+                  >
+                    <img src={item.cover} alt={item.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                  </Link>
+
+                  <div className="flex-1 min-w-0">
+                    <Link
+                      to={`/manga/${item.mangaId}`}
+                      className="group"
+                    >
                       <h3 className="text-sm font-medium text-gray-200 line-clamp-2 group-hover:text-violet-400 transition-colors">
                         {item.title}
                       </h3>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Ch. {item.currentChapter}{item.totalChapters ? ` / ${item.totalChapters}` : ''}
+                    </Link>
+
+                    <p className="text-xs text-gray-500 mt-1">
+                      Ch. {item.currentChapter}{item.totalChapters ? ` / ${item.totalChapters}` : ''}
+                    </p>
+
+                    {item.lastReadDate && (
+                      <p className="text-[11px] text-gray-600 mt-1">
+                        Last read {new Date(item.lastReadDate).toLocaleDateString()}
                       </p>
-                      <div className="mt-2">
-                        <ProgressBar
-                          value={item.currentChapter}
-                          max={item.totalChapters || 100}
-                          size="sm"
-                        />
-                      </div>
+                    )}
+
+                    <div className="mt-2">
+                      <ProgressBar
+                        value={item.currentChapter}
+                        max={item.totalChapters || 100}
+                        size="sm"
+                      />
                     </div>
                   </div>
-                  <button className="mt-3 w-full py-2 bg-violet-500/10 text-violet-400 rounded-lg text-xs font-medium hover:bg-violet-500/20 transition-colors">
-                    Continue Reading
-                  </button>
-                </Card>
-              </Link>
+                </div>
+
+                <div className="flex items-center justify-between gap-3 mt-3">
+                  <p className="text-xs text-gray-600">
+                    Next: Ch. {item.nextChapter}
+                  </p>
+                  <Link
+                    to={`/manga/${item.mangaId}`}
+                    className="px-3 py-1.5 bg-violet-500/10 text-violet-400 rounded-lg text-xs font-medium hover:bg-violet-500/20 transition-colors"
+                  >
+                    Continue
+                  </Link>
+                </div>
+              </Card>
             ))}
           </div>
         </div>
