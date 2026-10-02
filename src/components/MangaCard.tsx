@@ -19,9 +19,9 @@ export default function MangaCard({ manga, size = 'md', fullWidth = false }: Man
   const coverUrl = manga.coverImage.extraLarge || manga.coverImage.large || manga.coverImage.medium;
 
   const sizeClasses = {
-    sm: 'w-32',
-    md: 'w-40 sm:w-44',
-    lg: 'w-48 sm:w-56',
+    sm: 'w-32 min-w-[8rem]',
+    md: 'w-40 min-w-[10rem] sm:w-44 sm:min-w-[11rem]',
+    lg: 'w-48 min-w-[12rem] sm:w-56 sm:min-w-[14rem]',
   };
 
   const cardWidthClass = fullWidth ? 'w-full' : `${sizeClasses[size]} flex-shrink-0`;
