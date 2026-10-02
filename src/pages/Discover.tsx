@@ -208,7 +208,7 @@ export default function Discover() {
           {/* Genres */}
           <div>
             <p className="text-sm font-medium text-gray-400 mb-2">Genres</p>
-            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide sm:flex-wrap sm:overflow-visible sm:pb-0">
+            <div className="genre-filters scrollbar-hide">
               {AVAILABLE_GENRES.map((genre) => (
                 <button
                   key={genre}
