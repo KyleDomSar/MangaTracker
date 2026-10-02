@@ -90,9 +90,9 @@ export default function MangaCard({ manga, size = 'md', fullWidth = false }: Man
 // Skeleton card for loading states
 export function MangaCardSkeleton({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
   const sizeClasses = {
-    sm: 'w-32',
-    md: 'w-40 sm:w-44',
-    lg: 'w-48 sm:w-56',
+    sm: 'w-32 min-w-[8rem]',
+    md: 'w-40 min-w-[10rem] sm:w-44 sm:min-w-[11rem]',
+    lg: 'w-48 min-w-[12rem] sm:w-56 sm:min-w-[14rem]',
   };
 
   return (
