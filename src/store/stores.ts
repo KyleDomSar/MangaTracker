@@ -107,12 +107,13 @@ export const useLibraryStore = create<LibraryState>()(
         set((state) => ({
           items: state.items.map((i) => {
             if (i.mangaId !== mangaId) return i;
-            const isComplete = i.totalChapters !== null && chapter >= i.totalChapters;
+            const nextCurrentChapter = Math.max(i.currentChapter, chapter);
+            const isComplete = i.totalChapters !== null && nextCurrentChapter >= i.totalChapters;
             return {
               ...i,
-              currentChapter: chapter,
+              currentChapter: nextCurrentChapter,
               lastReadChapter: chapter,
-              nextChapter: chapter + 1,
+              nextChapter: nextCurrentChapter + 1,
               lastUpdated: now,
               lastReadDate: now,
               status: isComplete ? 'COMPLETED' : i.status,
@@ -252,7 +253,7 @@ export const useProgressStore = create<ProgressState>()(
                 ...existing,
                 currentChapter: Math.max(existing.currentChapter, chapter),
                 lastReadChapter: chapter,
-                nextChapter: chapter + 1,
+                nextChapter: Math.max(existing.currentChapter, chapter) + 1,
                 lastReadDate: new Date().toISOString(),
                 chaptersRead,
               },
