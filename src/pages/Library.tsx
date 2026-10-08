@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Grid3X3, List, BookOpen, CheckCircle, Clock, AlertTriangle, Pause } from 'lucide-react';
+import { Search, Grid3X3, List, BookOpen, CheckCircle, Clock, AlertTriangle, Pause, ChevronDown } from 'lucide-react';
 import { useLibraryStore, getLibraryStatusColor, getLibraryStatusLabel } from '../store/stores';
 import { Card, ProgressBar, EmptyState, EmptyIcons, Badge } from '../components/UI';
 import type { LibraryStatus } from '../models/types';
@@ -16,6 +16,7 @@ export default function LibraryPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState<'updated' | 'added' | 'title' | 'progress'>('updated');
   const [sortDirection, setSortDirection] = useState<'desc' | 'asc'>('desc');
+  const [openStatusMenu, setOpenStatusMenu] = useState<number | null>(null);
 
   const filteredItems = useMemo(() => {
     let result = items;
@@ -211,18 +212,44 @@ export default function LibraryPage() {
                 {item.totalChapters && item.currentChapter >= item.totalChapters ? 'Completed' : 'Mark Next'}
               </button>
 
-              <select
-                value={item.status}
-                onChange={(e) => updateStatus(item.mangaId, e.target.value as LibraryStatus)}
-                className="mt-2 w-full px-2 py-1.5 bg-gray-800/50 border border-gray-700/50 rounded-lg text-xs text-gray-400 focus:outline-none focus:border-violet-500/50 cursor-pointer"
-                aria-label={`Change status for ${item.title}`}
-              >
-                {(['READING', 'PLAN_TO_READ', 'COMPLETED', 'DROPPED', 'PAUSED'] as const).map((status) => (
-                  <option key={status} value={status}>
-                    {getLibraryStatusLabel(status)}
-                  </option>
-                ))}
-              </select>
+              <div className="relative mt-2">
+                <button
+                  type="button"
+                  onClick={() => setOpenStatusMenu((current) => current === item.mangaId ? null : item.mangaId)}
+                  className="w-full flex items-center justify-between gap-2 px-2.5 py-1.5 bg-gray-800/70 border border-gray-700/60 rounded-lg text-xs text-gray-300 hover:text-white hover:border-gray-600 focus:outline-none focus:border-violet-500/50 transition-colors"
+                  aria-haspopup="listbox"
+                  aria-expanded={openStatusMenu === item.mangaId}
+                  aria-label={`Change status for ${item.title}`}
+                >
+                  <span className="truncate">{getLibraryStatusLabel(item.status)}</span>
+                  <ChevronDown
+                    size={13}
+                    className={`flex-shrink-0 text-gray-400 transition-transform ${openStatusMenu === item.mangaId ? 'rotate-180' : ''}`}
+                  />
+                </button>
+
+                {openStatusMenu === item.mangaId && (
+                  <div className="absolute left-0 right-0 top-full mt-1 z-30 overflow-hidden rounded-lg border border-gray-700/70 bg-[#1a1a24] shadow-xl">
+                    {(['READING', 'PLAN_TO_READ', 'COMPLETED', 'DROPPED', 'PAUSED'] as const).map((status) => (
+                      <button
+                        key={status}
+                        type="button"
+                        onClick={() => {
+                          updateStatus(item.mangaId, status);
+                          setOpenStatusMenu(null);
+                        }}
+                        className={`w-full px-3 py-2 text-left text-xs font-medium transition-colors ${
+                          item.status === status
+                            ? 'bg-violet-500/10 text-violet-300'
+                            : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                        }`}
+                      >
+                        {getLibraryStatusLabel(status)}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </div>
