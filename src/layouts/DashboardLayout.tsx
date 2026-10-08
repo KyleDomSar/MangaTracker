@@ -34,7 +34,7 @@ export default function DashboardLayout() {
             </div>
             <div>
               <h1 className="font-bold text-lg text-white">MangaTracker</h1>
-              <p className="text-xs text-gray-500">Track your journey</p>
+              <p className="text-xs text-gray-400">Track your journey</p>
             </div>
           </div>
         </div>
@@ -64,8 +64,8 @@ export default function DashboardLayout() {
         {/* Footer */}
         <div className="p-4 border-t border-gray-800/50">
           <div className="px-4 py-3 rounded-xl bg-gray-800/30">
-            <p className="text-xs text-gray-500">MangaTracker v1.0</p>
-            <p className="text-xs text-gray-600 mt-1">Your manga journey tracker</p>
+            <p className="text-xs text-gray-400">MangaTracker v1.0</p>
+            <p className="text-xs text-gray-400 mt-1">Your manga journey tracker</p>
           </div>
         </div>
       </aside>
@@ -102,7 +102,7 @@ export default function DashboardLayout() {
                 className={`flex min-w-[68px] flex-shrink-0 flex-col items-center gap-1 px-2 py-2 rounded-xl transition-all duration-200 ${
                   isActive
                     ? 'text-violet-400'
-                    : 'text-gray-500'
+                    : 'text-gray-400'
                 }`}
               >
                 <item.icon size={20} />
