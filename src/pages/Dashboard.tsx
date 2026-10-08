@@ -112,7 +112,7 @@ export default function Dashboard() {
                 <stat.icon size={18} className={stat.color} />
               </div>
               <p className="text-2xl font-bold text-white">{stat.value}</p>
-              <p className="text-xs text-gray-500 mt-1">{stat.label}</p>
+              <p className="text-xs text-gray-400 mt-1">{stat.label}</p>
             </Card>
           ))}
         </div>
@@ -129,7 +129,7 @@ export default function Dashboard() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-white">{totalChaptersRead}</p>
-                <p className="text-xs text-gray-500">Chapters Read</p>
+                <p className="text-xs text-gray-400">Chapters Read</p>
               </div>
             </div>
           </Card>
@@ -141,7 +141,7 @@ export default function Dashboard() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-white">{trackedSeries}</p>
-                <p className="text-xs text-gray-500">Series Tracked</p>
+                <p className="text-xs text-gray-400">Series Tracked</p>
               </div>
             </div>
           </Card>
@@ -153,7 +153,7 @@ export default function Dashboard() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-2xl font-bold text-white">{averageProgress}%</p>
-                <p className="text-xs text-gray-500">Average Progress</p>
+                <p className="text-xs text-gray-400">Average Progress</p>
               </div>
             </div>
           </Card>
@@ -196,12 +196,12 @@ export default function Dashboard() {
                       </h3>
                     </Link>
 
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-400 mt-1">
                       Ch. {item.currentChapter}{item.totalChapters ? ` / ${item.totalChapters}` : ''}
                     </p>
 
                     {item.lastReadDate && (
-                      <p className="text-[11px] text-gray-600 mt-1">
+                      <p className="text-[11px] text-gray-400 mt-1">
                         Last read {new Date(item.lastReadDate).toLocaleDateString()}
                       </p>
                     )}
@@ -217,7 +217,7 @@ export default function Dashboard() {
                 </div>
 
                 <div className="flex items-center justify-between gap-3 mt-3">
-                  <p className="text-xs text-gray-600">
+                  <p className="text-xs text-gray-400">
                     Next: Ch. {item.nextChapter}
                   </p>
                   <Link
@@ -306,11 +306,11 @@ export default function Dashboard() {
                     {' — '}
                     {activity.type === 'CHAPTER_READ' ? `Read Chapter ${activity.chapter}` : getActivityLabel(activity.type)}
                   </p>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <p className="text-xs text-gray-400 mt-0.5">
                     {new Date(activity.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
-                <TrendingUp size={14} className="text-gray-600" />
+                <TrendingUp size={14} className="text-gray-400" />
               </Link>
             ))}
           </Card>
