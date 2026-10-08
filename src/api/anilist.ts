@@ -623,6 +623,7 @@ export const SORT_OPTIONS = [
   { value: 'SCORE_DESC', label: 'Highest Rated' },
   { value: 'TRENDING_DESC', label: 'Trending' },
   { value: 'START_DATE_DESC', label: 'Newest' },
+  { value: 'UPDATED_AT_DESC', label: 'Recently Updated' },
   { value: 'CHAPTERS_DESC', label: 'Most Chapters' },
 ];
 
@@ -632,4 +633,5 @@ export const STATUS_OPTIONS = [
   { value: 'FINISHED', label: 'Finished' },
   { value: 'NOT_YET_RELEASED', label: 'Not Yet Released' },
   { value: 'CANCELLED', label: 'Cancelled' },
+  { value: 'HIATUS', label: 'Hiatus' },
 ];
