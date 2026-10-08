@@ -5,6 +5,19 @@ import { useLibraryStore, getLibraryStatusColor, getLibraryStatusLabel } from '.
 import { Card, ProgressBar, EmptyState, EmptyIcons, Badge } from '../components/UI';
 import type { LibraryStatus } from '../models/types';
 
+function getLibraryBadgeClass(status: LibraryStatus) {
+  const classes: Record<LibraryStatus, string> = {
+    READING: 'bg-[#0a0a0f]/90 text-blue-300 border-blue-400/50',
+    COMPLETED: 'bg-[#0a0a0f]/90 text-green-300 border-green-400/50',
+    PLAN_TO_READ: 'bg-[#0a0a0f]/90 text-purple-300 border-purple-400/50',
+    DROPPED: 'bg-[#0a0a0f]/90 text-red-300 border-red-400/50',
+    PAUSED: 'bg-[#0a0a0f]/90 text-yellow-300 border-yellow-400/50',
+  };
+
+  return classes[status];
+}
+
+
 type FilterTab = 'ALL' | LibraryStatus;
 
 export default function LibraryPage() {
@@ -345,7 +358,9 @@ export default function LibraryPage() {
                     alt={item.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
-                  <div className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-medium border ${getLibraryStatusColor(item.status)}`}>
+                  <div
+                    className={`absolute top-2 right-2 z-10 px-2.5 py-1 rounded-full text-[10px] leading-none font-semibold border backdrop-blur-md shadow-lg whitespace-nowrap ${getLibraryBadgeClass(item.status)}`}
+                  >
                     {getLibraryStatusLabel(item.status)}
                   </div>
                   {item.totalChapters && (
