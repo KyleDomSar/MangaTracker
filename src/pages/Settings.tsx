@@ -141,7 +141,7 @@ export default function SettingsPage() {
     <div className="space-y-6 max-w-2xl">
       <div>
         <h1 className="text-2xl font-bold text-white">Settings</h1>
-        <p className="text-gray-500 text-sm mt-1">Manage your app preferences and data</p>
+        <p className="text-gray-400 text-sm mt-1">Manage your app preferences and data</p>
       </div>
 
       {/* Settings Sections */}
@@ -157,9 +157,9 @@ export default function SettingsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="text-sm font-medium text-gray-200">{item.label}</h3>
-                    <p className="text-xs text-gray-500 mt-0.5">{item.description}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{item.description}</p>
                     {item.detail && (
-                      <p className="text-xs text-gray-600 mt-1">{item.detail}</p>
+                      <p className="text-xs text-gray-400 mt-1">{item.detail}</p>
                     )}
                   </div>
                   {confirmClear === item.action ? (
@@ -203,7 +203,7 @@ export default function SettingsPage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h3 className="text-sm font-medium text-gray-200">Export or restore your data</h3>
-              <p className="text-xs text-gray-500 mt-0.5">Save your library, progress, activity, and settings as a local JSON backup.</p>
+              <p className="text-xs text-gray-400 mt-0.5">Save your library, progress, activity, and settings as a local JSON backup.</p>
             </div>
             <div className="flex gap-2 flex-shrink-0">
               <button
@@ -223,7 +223,7 @@ export default function SettingsPage() {
               <input ref={importInputRef} type="file" accept="application/json,.json" onChange={handleImportData} className="hidden" />
             </div>
           </div>
-          {backupMessage && <p className="text-xs text-gray-500 mt-3">{backupMessage}</p>}
+          {backupMessage && <p className="text-xs text-gray-300 mt-3">{backupMessage}</p>}
         </Card>
       </div>
       {/* About */}
@@ -233,7 +233,7 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between gap-4">
             <div>
               <h3 className="text-sm font-medium text-gray-200">Default Library Status</h3>
-              <p className="text-xs text-gray-500 mt-0.5">Status used when you add a new title from Manga Details.</p>
+              <p className="text-xs text-gray-400 mt-0.5">Status used when you add a new title from Manga Details.</p>
             </div>
             <div className="relative w-32 flex-shrink-0">
               <select
@@ -263,7 +263,7 @@ export default function SettingsPage() {
             </div>
             <div>
               <h3 className="text-base font-bold text-white">MangaTracker</h3>
-              <p className="text-xs text-gray-500">Version 1.0.0</p>
+              <p className="text-xs text-gray-400">Version 1.0.0</p>
             </div>
           </div>
           <p className="text-sm text-gray-400 leading-relaxed">
@@ -271,7 +271,7 @@ export default function SettingsPage() {
             Track your reading progress, manage your library, and keep your reading history organized.
           </p>
           <div className="mt-4 pt-4 border-t border-gray-800/50">
-            <div className="flex items-center gap-2 text-xs text-gray-500">
+            <div className="flex items-center gap-2 text-xs text-gray-400">
               <Info size={12} />
               <span>Metadata is provided by AniList. Reading progress and library data are stored locally in your browser.</span>
             </div>
@@ -289,7 +289,7 @@ export default function SettingsPage() {
               </div>
               <div>
                 <h3 className="text-base font-bold text-white">Are you sure?</h3>
-                <p className="text-xs text-gray-500">This action cannot be undone.</p>
+                <p className="text-xs text-gray-400">This action cannot be undone.</p>
               </div>
             </div>
             <div className="flex gap-2">
