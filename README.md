@@ -1,6 +1,6 @@
 # MangaTracker
 
-MangaTracker is a modern web application for managing a personal manga and manhwa reading library.
+MangaTracker is a modern web application for managing a personal manga and manhwa reading library, with all user data stored locally in the browser.
 
 ## Features
 
@@ -33,8 +33,8 @@ MangaTracker is a modern web application for managing a personal manga and manhw
 ## Quick Start
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/manga-tracker.git
-cd manga-tracker
+git clone https://github.com/KyleDomSar/MangaTracker.git
+cd MangaTracker
 npm install
 npm run dev
 ```
