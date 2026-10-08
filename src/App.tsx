@@ -8,7 +8,7 @@ import ActivityPage from './pages/Activity';
 import ProfilePage from './pages/Profile';
 import SettingsPage from './pages/Settings';
 import MangaDetails from './pages/MangaDetails';
-import { OfflineBanner } from './components/UI';
+import { OfflineBanner, ErrorState } from './components/UI';
 
 export default function App() {
   return (
@@ -23,6 +23,7 @@ export default function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/manga/:id" element={<MangaDetails />} />
+          <Route path="*" element={<ErrorState message="The page you’re looking for does not exist." />} />
         </Route>
       </Routes>
     </HashRouter>
