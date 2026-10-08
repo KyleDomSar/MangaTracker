@@ -258,10 +258,10 @@ export default function MangaDetails() {
             <div>
               <h1 className="text-2xl lg:text-3xl font-bold text-white">{title}</h1>
               {manga.title.native && (
-                <p className="text-sm text-gray-500 mt-1">{manga.title.native}</p>
+                <p className="text-sm text-gray-400 mt-1">{manga.title.native}</p>
               )}
               {manga.title.english && manga.title.romaji !== manga.title.english && (
-                <p className="text-sm text-gray-500">{manga.title.romaji}</p>
+                <p className="text-sm text-gray-400">{manga.title.romaji}</p>
               )}
             </div>
 
@@ -345,7 +345,7 @@ export default function MangaDetails() {
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div>
               <h3 className="text-sm font-bold text-gray-300">Reading Progress</h3>
-              <p className="text-xs text-gray-600 mt-1">
+              <p className="text-xs text-gray-400 mt-1">
                 {chapterLookupLoading
                   ? 'Checking chapter count...'
                   : chapterSource
@@ -362,7 +362,7 @@ export default function MangaDetails() {
 
           <div className="flex items-end gap-2 mt-5 mb-3">
             <p className="text-3xl font-bold text-white">{libraryItem.currentChapter}</p>
-            <p className="text-sm text-gray-500 mb-1">
+            <p className="text-sm text-gray-400 mb-1">
               {chapterTotal ? `/ ${chapterTotal} chapters` : '/ total unavailable'}
             </p>
           </div>
@@ -374,13 +374,13 @@ export default function MangaDetails() {
 
           <div className="grid grid-cols-2 gap-3 mt-4">
             <div className="rounded-xl bg-gray-800/30 border border-gray-800/50 p-3">
-              <p className="text-[11px] uppercase tracking-wide text-gray-600">Last Read</p>
+              <p className="text-[11px] uppercase tracking-wide text-gray-400">Last Read</p>
               <p className="text-sm text-gray-300 mt-1">
                 {libraryItem.lastReadChapter > 0 ? `Chapter ${libraryItem.lastReadChapter}` : 'Not started'}
               </p>
             </div>
             <div className="rounded-xl bg-gray-800/30 border border-gray-800/50 p-3">
-              <p className="text-[11px] uppercase tracking-wide text-gray-600">Next Chapter</p>
+              <p className="text-[11px] uppercase tracking-wide text-gray-400">Next Chapter</p>
               <p className="text-sm text-gray-300 mt-1">
                 {chapterTotal && libraryItem.nextChapter > chapterTotal ? 'Completed' : `Chapter ${libraryItem.nextChapter}`}
               </p>
@@ -405,7 +405,7 @@ export default function MangaDetails() {
           </div>
 
           <div className="mt-4 pt-4 border-t border-gray-800/50">
-            <p className="text-xs font-medium text-gray-500 mb-2">Jump to chapter</p>
+            <p className="text-xs font-medium text-gray-400 mb-2">Jump to chapter</p>
             <div className="flex gap-2">
               <input
                 type="number"
@@ -427,7 +427,7 @@ export default function MangaDetails() {
                 Mark Read
               </button>
             </div>
-            <p className="text-[11px] text-gray-600 mt-2">
+            <p className="text-[11px] text-gray-400 mt-2">
               Marks the selected chapter and all chapters before it as read.
             </p>
           </div>
@@ -490,9 +490,9 @@ export default function MangaDetails() {
             <BookOpen size={14} />
             Chapters
             {chapterTotal ? (
-              <span className="text-gray-500 font-normal">({chapterTotal})</span>
+              <span className="text-gray-400 font-normal">({chapterTotal})</span>
             ) : (
-              <span className="text-gray-600 font-normal text-xs">(count unavailable)</span>
+              <span className="text-gray-400 font-normal text-xs">(count unavailable)</span>
             )}
           </h3>
         </div>
@@ -518,7 +518,7 @@ export default function MangaDetails() {
                   >
                     {isRead && <CheckCircle size={12} className="text-white" />}
                   </button>
-                  <span className={`text-sm ${isRead ? 'text-gray-500' : 'text-gray-300'}`}>
+                  <span className={`text-sm ${isRead ? 'text-gray-400' : 'text-gray-300'}`}>
                     Chapter {ch}
                   </span>
                 </div>
@@ -540,7 +540,7 @@ export default function MangaDetails() {
                 <div className="w-16 aspect-[3/4] rounded-lg overflow-hidden bg-gray-800 mx-auto">
                   <img src={item.coverImage.large || item.coverImage.medium} alt="" className="w-full h-full object-cover" />
                 </div>
-                <p className="text-xs text-gray-500 mt-1.5 line-clamp-2 text-center group-hover:text-violet-400 transition-colors">
+                <p className="text-xs text-gray-300 mt-1.5 line-clamp-2 text-center group-hover:text-violet-400 transition-colors">
                   {item.title.english || item.title.romaji}
                 </p>
               </Link>
@@ -563,10 +563,10 @@ export default function MangaDetails() {
                 <div className="w-16 h-22 rounded-lg overflow-hidden bg-gray-800 mx-auto">
                   <img src={rel.coverImage.large || rel.coverImage.medium} alt="" className="w-full h-full object-cover" />
                 </div>
-                <p className="text-xs text-gray-500 mt-1.5 line-clamp-2 text-center group-hover:text-violet-400 transition-colors">
+                <p className="text-xs text-gray-300 mt-1.5 line-clamp-2 text-center group-hover:text-violet-400 transition-colors">
                   {rel.title.english || rel.title.romaji}
                 </p>
-                <p className="text-[10px] text-gray-600 text-center">{formatRelationType(rel.relationType)}</p>
+                <p className="text-[10px] text-gray-400 text-center">{formatRelationType(rel.relationType)}</p>
               </Link>
             ))}
           </div>
