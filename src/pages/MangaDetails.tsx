@@ -23,6 +23,7 @@ export default function MangaDetails() {
   const [chapterTotal, setChapterTotal] = useState<number | null>(null);
   const [chapterSource, setChapterSource] = useState<string | null>(null);
   const [chapterLookupLoading, setChapterLookupLoading] = useState(false);
+  const [chapterInput, setChapterInput] = useState('');
 
   const items = useLibraryStore((s) => s.items);
   const isInLibrary = items.some((i) => i.mangaId === mangaId);
@@ -170,6 +171,15 @@ export default function MangaDetails() {
     const currentChapter = progress?.lastReadChapter || 0;
     if (currentChapter <= 0) return;
     handleMarkChapter(currentChapter, false);
+  };
+
+  const handleChapterJump = () => {
+    if (!manga) return;
+    const chapter = Number(chapterInput);
+    if (!Number.isInteger(chapter) || chapter < 1) return;
+    if (chapterTotal !== null && chapter > chapterTotal) return;
+    handleMarkChapter(chapter, true);
+    setChapterInput('');
   };
 
   // Validate the route after all hooks have been declared.
@@ -379,6 +389,34 @@ export default function MangaDetails() {
             >
               Mark Current Unread
             </button>
+          </div>
+
+          <div className="mt-4 pt-4 border-t border-gray-800/50">
+            <p className="text-xs font-medium text-gray-500 mb-2">Jump to chapter</p>
+            <div className="flex gap-2">
+              <input
+                type="number"
+                min="1"
+                max={chapterTotal ?? undefined}
+                value={chapterInput}
+                onChange={(e) => setChapterInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleChapterJump();
+                }}
+                placeholder={chapterTotal ? `1-${chapterTotal}` : 'Chapter number'}
+                className="w-full sm:max-w-xs px-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-violet-500/50"
+              />
+              <button
+                onClick={handleChapterJump}
+                disabled={!chapterInput.trim()}
+                className="px-4 py-2 bg-gray-800 text-gray-300 border border-gray-700/50 rounded-lg text-xs font-medium hover:text-white hover:border-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                Mark Read
+              </button>
+            </div>
+            <p className="text-[11px] text-gray-600 mt-2">
+              Marks the selected chapter and all chapters before it as read.
+            </p>
           </div>
         </Card>
       )}
