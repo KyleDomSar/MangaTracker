@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Trash2, AlertTriangle, Info, Database, BookOpen, Activity } from 'lucide-react';
+import { Trash2, AlertTriangle, Info, Database, BookOpen, Activity, ChevronDown } from 'lucide-react';
 import { useLibraryStore, useActivityStore, useSettingsStore, getLibraryStatusLabel } from '../store/stores';
 import { Card } from '../components/UI';
 
@@ -235,15 +235,21 @@ export default function SettingsPage() {
               <h3 className="text-sm font-medium text-gray-200">Default Library Status</h3>
               <p className="text-xs text-gray-500 mt-0.5">Status used when you add a new title from Manga Details.</p>
             </div>
-            <select
-              value={settings.defaultLibraryStatus}
-              onChange={(e) => updateSettings({ defaultLibraryStatus: e.target.value as typeof settings.defaultLibraryStatus })}
-              className="px-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-xs text-gray-300 focus:outline-none"
-            >
-              {(['READING', 'PLAN_TO_READ', 'COMPLETED', 'DROPPED', 'PAUSED'] as const).map((status) => (
-                <option key={status} value={status}>{getLibraryStatusLabel(status)}</option>
-              ))}
-            </select>
+            <div className="relative w-32 flex-shrink-0">
+              <select
+                value={settings.defaultLibraryStatus}
+                onChange={(e) => updateSettings({ defaultLibraryStatus: e.target.value as typeof settings.defaultLibraryStatus })}
+                className="appearance-none w-full pr-8 pl-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-xs text-gray-300 focus:outline-none focus:border-violet-500/50 cursor-pointer"
+              >
+                {(['READING', 'PLAN_TO_READ', 'COMPLETED', 'DROPPED', 'PAUSED'] as const).map((status) => (
+                  <option key={status} value={status}>{getLibraryStatusLabel(status)}</option>
+                ))}
+              </select>
+              <ChevronDown
+                size={14}
+                className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400"
+              />
+            </div>
           </div>
         </Card>
       </div>
