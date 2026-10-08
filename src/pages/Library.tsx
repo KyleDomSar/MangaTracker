@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Grid3X3, List, BookOpen, CheckCircle, Clock, AlertTriangle, Pause, ChevronDown, Trash2, CheckSquare, X } from 'lucide-react';
-import { useLibraryStore, getLibraryStatusColor, getLibraryStatusLabel } from '../store/stores';
+import { useLibraryStore, getLibraryStatusLabel } from '../store/stores';
 import { Card, ProgressBar, EmptyState, EmptyIcons, Badge } from '../components/UI';
 import type { LibraryStatus } from '../models/types';
 
@@ -167,7 +167,7 @@ export default function LibraryPage() {
             className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all border ${
               activeFilter === tab.id
                 ? 'bg-violet-500/10 text-violet-400 border-violet-500/30'
-                : 'text-gray-500 border-gray-800/50 hover:text-gray-300'
+                : 'text-gray-400 border-gray-800/50 hover:text-gray-200'
             }`}
           >
             {tab.icon}
@@ -375,7 +375,7 @@ export default function LibraryPage() {
                 <h3 className="text-sm font-medium text-gray-200 line-clamp-2 group-hover:text-violet-400 transition-colors">
                   {item.title}
                 </h3>
-                <p className="text-xs text-gray-500 mt-0.5">
+                <p className="text-xs text-gray-400 mt-0.5">
                   Ch. {item.currentChapter}{item.totalChapters ? ` / ${item.totalChapters}` : ''}
                 </p>
               </Link>
