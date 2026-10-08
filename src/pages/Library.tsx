@@ -128,18 +128,18 @@ export default function LibraryPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Library</h1>
-          <p className="text-gray-500 text-sm">{items.length} manga in your collection</p>
+          <p className="text-gray-400 text-sm">{items.length} manga in your collection</p>
         </div>
         <div className="flex items-center gap-1 bg-[#1a1a24] p-1 rounded-lg border border-gray-800/50">
           <button
             onClick={() => setViewMode('grid')}
-            className={`p-2 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-violet-500/20 text-violet-400' : 'text-gray-500 hover:text-gray-300'}`}
+            className={`p-2 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-violet-500/20 text-violet-400' : 'text-gray-400 hover:text-gray-200'}`}
           >
             <Grid3X3 size={16} />
           </button>
           <button
             onClick={() => setViewMode('list')}
-            className={`p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-violet-500/20 text-violet-400' : 'text-gray-500 hover:text-gray-300'}`}
+            className={`p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-violet-500/20 text-violet-400' : 'text-gray-400 hover:text-gray-200'}`}
           >
             <List size={16} />
           </button>
@@ -179,7 +179,7 @@ export default function LibraryPage() {
 
       {/* Sort */}
       <div className="flex items-center gap-2">
-        <span className="text-xs text-gray-500">Sort by:</span>
+        <span className="text-xs text-gray-400">Sort by:</span>
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
@@ -287,7 +287,7 @@ export default function LibraryPage() {
               </div>
               <div>
                 <h3 className="text-base font-bold text-white">Remove selected manga?</h3>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-400">
                   This will remove {selectedIds.length} {selectedIds.length === 1 ? 'title' : 'titles'} and their saved progress.
                 </p>
               </div>
@@ -442,7 +442,7 @@ export default function LibraryPage() {
                 className={`w-9 flex-shrink-0 rounded-xl border flex items-center justify-center transition-all ${
                   selectedIds.includes(item.mangaId)
                     ? 'bg-violet-500/10 border-violet-500/40 text-violet-400'
-                    : 'bg-gray-900/30 border-gray-800/50 text-gray-600 hover:text-gray-300'
+                    : 'bg-gray-900/50 border-gray-700/60 text-gray-400 hover:text-white'
                 }`}
                 aria-label={`${selectedIds.includes(item.mangaId) ? 'Deselect' : 'Select'} ${item.title}`}
                 aria-pressed={selectedIds.includes(item.mangaId)}
@@ -463,7 +463,7 @@ export default function LibraryPage() {
                       <Badge variant={item.status === 'READING' ? 'info' : item.status === 'COMPLETED' ? 'success' : 'default'}>
                         {getLibraryStatusLabel(item.status)}
                       </Badge>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-gray-400">
                         Ch. {item.currentChapter}{item.totalChapters ? ` / ${item.totalChapters}` : ''}
                       </span>
                     </div>
@@ -486,12 +486,12 @@ export default function LibraryPage() {
                     {item.totalChapters && item.currentChapter >= item.totalChapters ? 'Done' : 'Mark Next'}
                   </button>
                   <div className="text-right flex-shrink-0">
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-400">
                       {item.lastReadDate
                         ? new Date(item.lastReadDate).toLocaleDateString()
                         : 'Never read'}
                     </p>
-                    <p className="text-xs text-gray-600 mt-0.5">
+                    <p className="text-xs text-gray-400 mt-0.5">
                       Next: Ch. {item.nextChapter}
                     </p>
                   </div>
