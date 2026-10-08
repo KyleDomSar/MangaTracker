@@ -10,6 +10,7 @@ type FilterTab = 'ALL' | LibraryStatus;
 export default function LibraryPage() {
   const items = useLibraryStore((s) => s.items);
   const updateProgress = useLibraryStore((s) => s.updateProgress);
+  const updateStatus = useLibraryStore((s) => s.updateStatus);
   const [activeFilter, setActiveFilter] = useState<FilterTab>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -204,10 +205,24 @@ export default function LibraryPage() {
                   if (item.totalChapters && next > item.totalChapters) return;
                   updateProgress(item.mangaId, next);
                 }}
-                className="mt-2 w-full px-2 py-1.5 bg-violet-500/10 text-violet-400 rounded-lg text-xs font-medium hover:bg-violet-500/20 transition-colors"
+                disabled={Boolean(item.totalChapters && item.currentChapter >= item.totalChapters)}
+                className="mt-2 w-full px-2 py-1.5 bg-violet-500/10 text-violet-400 rounded-lg text-xs font-medium hover:bg-violet-500/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
-                Mark Next
+                {item.totalChapters && item.currentChapter >= item.totalChapters ? 'Completed' : 'Mark Next'}
               </button>
+
+              <select
+                value={item.status}
+                onChange={(e) => updateStatus(item.mangaId, e.target.value as LibraryStatus)}
+                className="mt-2 w-full px-2 py-1.5 bg-gray-800/50 border border-gray-700/50 rounded-lg text-xs text-gray-400 focus:outline-none focus:border-violet-500/50 cursor-pointer"
+                aria-label={`Change status for ${item.title}`}
+              >
+                {(['READING', 'PLAN_TO_READ', 'COMPLETED', 'DROPPED', 'PAUSED'] as const).map((status) => (
+                  <option key={status} value={status}>
+                    {getLibraryStatusLabel(status)}
+                  </option>
+                ))}
+              </select>
             </div>
           ))}
         </div>
