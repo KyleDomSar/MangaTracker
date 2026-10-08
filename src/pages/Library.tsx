@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Grid3X3, List, BookOpen, CheckCircle, Clock, AlertTriangle, Pause, ChevronDown } from 'lucide-react';
+import { Search, Grid3X3, List, BookOpen, CheckCircle, Clock, AlertTriangle, Pause, ChevronDown, Trash2, CheckSquare, X } from 'lucide-react';
 import { useLibraryStore, getLibraryStatusColor, getLibraryStatusLabel } from '../store/stores';
 import { Card, ProgressBar, EmptyState, EmptyIcons, Badge } from '../components/UI';
 import type { LibraryStatus } from '../models/types';
@@ -11,12 +11,21 @@ export default function LibraryPage() {
   const items = useLibraryStore((s) => s.items);
   const updateProgress = useLibraryStore((s) => s.updateProgress);
   const updateStatus = useLibraryStore((s) => s.updateStatus);
+  const removeItem = useLibraryStore((s) => s.removeItem);
   const [activeFilter, setActiveFilter] = useState<FilterTab>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState<'updated' | 'added' | 'title' | 'progress'>('updated');
   const [sortDirection, setSortDirection] = useState<'desc' | 'asc'>('desc');
   const [openStatusMenu, setOpenStatusMenu] = useState<number | null>(null);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [confirmBulkRemove, setConfirmBulkRemove] = useState(false);
+
+  useEffect(() => {
+    setSelectedIds([]);
+    setOpenStatusMenu(null);
+    setConfirmBulkRemove(false);
+  }, [activeFilter, searchQuery, viewMode]);
 
   const filteredItems = useMemo(() => {
     let result = items;
@@ -59,6 +68,35 @@ export default function LibraryPage() {
     
     return result;
   }, [items, activeFilter, searchQuery, sortBy, sortDirection]);
+
+  const visibleIds = filteredItems.map((item) => item.mangaId);
+  const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.includes(id));
+
+  const toggleSelected = (mangaId: number) => {
+    setSelectedIds((current) =>
+      current.includes(mangaId)
+        ? current.filter((id) => id !== mangaId)
+        : [...current, mangaId]
+    );
+  };
+
+  const toggleSelectAllVisible = () => {
+    setSelectedIds((current) => {
+      if (allVisibleSelected) return current.filter((id) => !visibleIds.includes(id));
+      return Array.from(new Set([...current, ...visibleIds]));
+    });
+  };
+
+  const handleBulkStatus = (status: LibraryStatus) => {
+    selectedIds.forEach((mangaId) => updateStatus(mangaId, status));
+    setSelectedIds([]);
+  };
+
+  const handleBulkRemove = () => {
+    selectedIds.forEach((mangaId) => removeItem(mangaId));
+    setSelectedIds([]);
+    setConfirmBulkRemove(false);
+  };
 
   const tabs: { id: FilterTab; label: string; icon: React.ReactNode; count: number }[] = [
     { id: 'ALL', label: 'All', icon: <BookOpen size={14} />, count: items.length },
@@ -147,7 +185,106 @@ export default function LibraryPage() {
         </button>
       </div>
 
+      {/* Bulk Actions */}
+      {selectedIds.length > 0 && (
+        <Card className="p-3">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <CheckSquare size={16} className="text-violet-400 flex-shrink-0" />
+              <span className="text-sm text-gray-300">
+                {selectedIds.length} selected
+              </span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
+              <button
+                type="button"
+                onClick={toggleSelectAllVisible}
+                className="px-3 py-1.5 bg-gray-800/70 border border-gray-700/50 rounded-lg text-xs text-gray-300 hover:text-white transition-colors"
+              >
+                {allVisibleSelected ? 'Deselect Visible' : 'Select Visible'}
+              </button>
+
+              <div className="relative">
+                <select
+                  defaultValue=""
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      handleBulkStatus(e.target.value as LibraryStatus);
+                      e.currentTarget.value = '';
+                    }
+                  }}
+                  className="appearance-none pl-3 pr-8 py-1.5 bg-gray-800/70 border border-gray-700/50 rounded-lg text-xs text-gray-300 focus:outline-none focus:border-violet-500/50 cursor-pointer"
+                  aria-label="Change status for selected manga"
+                >
+                  <option value="" disabled>Change status</option>
+                  <option value="READING">Reading</option>
+                  <option value="PLAN_TO_READ">Plan to Read</option>
+                  <option value="COMPLETED">Completed</option>
+                  <option value="DROPPED">Dropped</option>
+                  <option value="PAUSED">Paused</option>
+                </select>
+                <ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setConfirmBulkRemove(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded-lg text-xs text-red-400 hover:bg-red-500/20 transition-colors"
+              >
+                <Trash2 size={13} />
+                Remove
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSelectedIds([])}
+                className="p-1.5 text-gray-500 hover:text-white transition-colors"
+                aria-label="Clear selection"
+                title="Clear selection"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* Content */}
+      {confirmBulkRemove && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <Card className="p-6 max-w-sm w-full">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center">
+                <Trash2 size={18} className="text-red-400" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white">Remove selected manga?</h3>
+                <p className="text-xs text-gray-500">
+                  This will remove {selectedIds.length} {selectedIds.length === 1 ? 'title' : 'titles'} and their saved progress.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmBulkRemove(false)}
+                className="flex-1 px-4 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-sm font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleBulkRemove}
+                className="flex-1 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-medium transition-colors"
+              >
+                Remove
+              </button>
+            </div>
+          </Card>
+        </div>
+      )}
+
       {filteredItems.length === 0 ? (
         items.length === 0 ? (
           <EmptyState
@@ -173,7 +310,20 @@ export default function LibraryPage() {
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
           {filteredItems.map((item) => (
-            <div key={item.mangaId} className="group">
+            <div key={item.mangaId} className="group relative">
+              <button
+                type="button"
+                onClick={() => toggleSelected(item.mangaId)}
+                className={`absolute top-2 left-2 z-20 w-6 h-6 rounded-md border flex items-center justify-center transition-all ${
+                  selectedIds.includes(item.mangaId)
+                    ? 'bg-violet-500 border-violet-400 text-white shadow-lg'
+                    : 'bg-black/70 border-white/40 text-transparent hover:text-gray-300 hover:border-white/70'
+                }`}
+                aria-label={`${selectedIds.includes(item.mangaId) ? 'Deselect' : 'Select'} ${item.title}`}
+                aria-pressed={selectedIds.includes(item.mangaId)}
+              >
+                <CheckCircle size={14} />
+              </button>
               <Link to={`/manga/${item.mangaId}`} className="block">
                 <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-gray-800 mb-2">
                   <img
@@ -256,11 +406,24 @@ export default function LibraryPage() {
       ) : (
         <div className="space-y-2">
           {filteredItems.map((item) => (
-            <Link
-              key={item.mangaId}
-              to={`/manga/${item.mangaId}`}
-              className="block group"
-            >
+            <div key={item.mangaId} className="flex items-stretch gap-2">
+              <button
+                type="button"
+                onClick={() => toggleSelected(item.mangaId)}
+                className={`w-9 flex-shrink-0 rounded-xl border flex items-center justify-center transition-all ${
+                  selectedIds.includes(item.mangaId)
+                    ? 'bg-violet-500/10 border-violet-500/40 text-violet-400'
+                    : 'bg-gray-900/30 border-gray-800/50 text-gray-600 hover:text-gray-300'
+                }`}
+                aria-label={`${selectedIds.includes(item.mangaId) ? 'Deselect' : 'Select'} ${item.title}`}
+                aria-pressed={selectedIds.includes(item.mangaId)}
+              >
+                <CheckCircle size={15} />
+              </button>
+              <Link
+                to={`/manga/${item.mangaId}`}
+                className="block group flex-1 min-w-0"
+              >
               <Card className="p-3 hover:border-violet-500/30 transition-all">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-16 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0">
@@ -308,7 +471,8 @@ export default function LibraryPage() {
                   </div>
                 </div>
               </Card>
-            </Link>
+              </Link>
+            </div>
           ))}
         </div>
       )}
