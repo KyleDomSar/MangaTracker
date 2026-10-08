@@ -79,7 +79,18 @@ export default function SettingsPage() {
 
       backupKeys.forEach((key) => {
         const value = parsed.data?.[key];
-        if (typeof value === 'string') localStorage.setItem(key, value);
+        if (value === null) {
+          localStorage.removeItem(key);
+          return;
+        }
+        if (typeof value !== 'string') {
+          throw new Error('Invalid backup data for ' + key + '.');
+        }
+        const persisted = JSON.parse(value) as { state?: unknown };
+        if (!persisted || typeof persisted !== 'object' || !('state' in persisted)) {
+          throw new Error('Invalid backup data for ' + key + '.');
+        }
+        localStorage.setItem(key, value);
       });
 
       setBackupMessage('Backup restored. Reloading MangaTracker...');
