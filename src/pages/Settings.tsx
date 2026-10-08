@@ -61,7 +61,7 @@ export default function SettingsPage() {
     link.href = url;
     link.download = `mangatracker-backup-${new Date().toISOString().slice(0, 10)}.json`;
     link.click();
-    URL.revokeObjectURL(url);
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
     setBackupMessage('Backup exported successfully.');
   };
 
@@ -77,10 +77,11 @@ export default function SettingsPage() {
         throw new Error('Invalid backup file.');
       }
 
+      const restoredValues: Record<string, string | null> = {};
       backupKeys.forEach((key) => {
         const value = parsed.data?.[key];
         if (value === null) {
-          localStorage.removeItem(key);
+          restoredValues[key] = null;
           return;
         }
         if (typeof value !== 'string') {
@@ -90,9 +91,14 @@ export default function SettingsPage() {
         if (!persisted || typeof persisted !== 'object' || !('state' in persisted)) {
           throw new Error('Invalid backup data for ' + key + '.');
         }
-        localStorage.setItem(key, value);
+        restoredValues[key] = value;
       });
 
+      backupKeys.forEach((key) => {
+        const value = restoredValues[key];
+        if (value === null) localStorage.removeItem(key);
+        else if (typeof value === 'string') localStorage.setItem(key, value);
+      });
       setBackupMessage('Backup restored. Reloading MangaTracker...');
       window.setTimeout(() => window.location.reload(), 500);
     } catch (error) {
