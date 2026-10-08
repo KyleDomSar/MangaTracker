@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Star, BookOpen, CheckCircle, Plus, Trash2,
-  ChevronRight, Users, ExternalLink
+  ChevronRight, Users
 } from 'lucide-react';
 import { getMangaDetails } from '../api/anilist';
 import { getChapterInfo } from '../api/mangabaka';
@@ -10,6 +10,14 @@ import type { MangaDetail } from '../api/anilist';
 import { useLibraryStore, useProgressStore, useActivityStore, useSettingsStore, getLibraryStatusColor, getLibraryStatusLabel } from '../store/stores';
 import { Card, ProgressBar, Badge, LoadingSpinner, ErrorState } from '../components/UI';
 import type { LibraryStatus } from '../models/types';
+
+function formatRelationType(value: string) {
+  return value
+    .toLowerCase()
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
 
 export default function MangaDetails() {
   const { id } = useParams<{ id: string }>();
@@ -24,6 +32,7 @@ export default function MangaDetails() {
   const [chapterSource, setChapterSource] = useState<string | null>(null);
   const [chapterLookupLoading, setChapterLookupLoading] = useState(false);
   const [chapterInput, setChapterInput] = useState('');
+  const [retryKey, setRetryKey] = useState(0);
 
   const items = useLibraryStore((s) => s.items);
   const isInLibrary = items.some((i) => i.mangaId === mangaId);
@@ -99,7 +108,7 @@ export default function MangaDetails() {
       }
     }
     loadManga();
-  }, [id, mangaId, initProgress]);
+  }, [id, mangaId, initProgress, retryKey]);
 
   const handleAddToLibrary = (status: LibraryStatus = defaultLibraryStatus) => {
     if (!manga) return;
@@ -199,7 +208,7 @@ export default function MangaDetails() {
   }
 
   if (loading) return <LoadingSpinner size="lg" />;
-  if (error) return <ErrorState message={error} onRetry={() => window.location.reload()} />;
+  if (error) return <ErrorState message={error} onRetry={() => setRetryKey((key) => key + 1)} />;
   if (!manga) return <ErrorState message="Manga not found" />;
 
   const title = manga.title.english || manga.title.romaji;
@@ -524,7 +533,7 @@ export default function MangaDetails() {
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
             {manga.recommended.slice(0, 10).map((item) => (
               <Link key={item.id} to={`/manga/${item.id}`} className="flex-shrink-0 w-20 group">
-                <div className="w-16 h-22 rounded-lg overflow-hidden bg-gray-800 mx-auto">
+                <div className="w-16 aspect-[3/4] rounded-lg overflow-hidden bg-gray-800 mx-auto">
                   <img src={item.coverImage.large || item.coverImage.medium} alt="" className="w-full h-full object-cover" />
                 </div>
                 <p className="text-xs text-gray-500 mt-1.5 line-clamp-2 text-center group-hover:text-violet-400 transition-colors">
@@ -553,7 +562,7 @@ export default function MangaDetails() {
                 <p className="text-xs text-gray-500 mt-1.5 line-clamp-2 text-center group-hover:text-violet-400 transition-colors">
                   {rel.title.english || rel.title.romaji}
                 </p>
-                <p className="text-[10px] text-gray-600 text-center">{rel.relationType}</p>
+                <p className="text-[10px] text-gray-600 text-center">{formatRelationType(rel.relationType)}</p>
               </Link>
             ))}
           </div>
