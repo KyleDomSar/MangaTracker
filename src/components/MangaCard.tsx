@@ -1,11 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Star, BookOpen } from 'lucide-react';
-import type { Manga } from '../models/types';
+import type { Manga, LibraryStatus } from '../models/types';
 import { useLibraryStore } from '../store/stores';
-import { getLibraryStatusColor } from '../store/stores';
 
-function getStatusBadgeClass(status: NonNullable<ReturnType<typeof useLibraryStore>>['items'][number]['status']) {
+function getStatusBadgeClass(status: LibraryStatus) {
   const classes = {
     READING: 'text-blue-300 border-blue-400/50 bg-[#0a0a0f]/90',
     COMPLETED: 'text-green-300 border-green-400/50 bg-[#0a0a0f]/90',
