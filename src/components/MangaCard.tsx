@@ -101,7 +101,7 @@ export default function MangaCard({ manga, size = 'md', fullWidth = false }: Man
           {title}
         </h3>
         {manga.format && (
-          <p className="text-xs text-gray-500 mt-0.5">{manga.format}</p>
+          <p className="text-xs text-gray-400 mt-0.5">{manga.format}</p>
         )}
       </div>
     </Link>
