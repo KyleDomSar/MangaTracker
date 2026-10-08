@@ -15,6 +15,7 @@ export default function Discover() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
+  const [appliedSearch, setAppliedSearch] = useState('');
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedSort, setSelectedSort] = useState('POPULARITY_DESC');
@@ -25,12 +26,19 @@ export default function Discover() {
   // Debounced search
   const debouncedSearch = useCallback((query: string) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!query.trim()) return;
+
     debounceRef.current = setTimeout(() => {
-      if (query.trim()) {
-        setActiveTab('search');
-        setPage(1);
-      }
+      setAppliedSearch(query.trim());
+      setActiveTab('search');
+      setPage(1);
     }, 500);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
   }, []);
 
   // Load data
@@ -42,8 +50,8 @@ export default function Discover() {
       setError(null);
       try {
         let result;
-        if (activeTab === 'search' && searchQuery.trim()) {
-          result = await searchManga(searchQuery, page, 24, selectedGenres, selectedStatus, selectedSort);
+        if (activeTab === 'search' && appliedSearch) {
+          result = await searchManga(appliedSearch, page, 24, selectedGenres, selectedStatus, selectedSort);
         } else if (activeTab === 'latest') {
           result = await getLatest(page, 24, selectedGenres, selectedStatus, selectedSort);
         } else if (activeTab === 'ongoing') {
@@ -71,12 +79,14 @@ export default function Discover() {
     }
 
     loadData();
-  }, [activeTab, page, searchQuery, selectedGenres, selectedStatus, selectedSort]);
+  }, [activeTab, page, appliedSearch, selectedGenres, selectedStatus, selectedSort]);
 
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
     debouncedSearch(value);
     if (!value.trim()) {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      setAppliedSearch('');
       setManga([]);
       setActiveTab('popular');
       setPage(1);
@@ -125,6 +135,13 @@ export default function Discover() {
     setPage(1);
   };
 
+  const defaultSort = activeTab === 'latest'
+    ? 'UPDATED_AT_DESC'
+    : activeTab === 'ongoing' || activeTab === 'completed' || activeTab === 'popular'
+      ? 'POPULARITY_DESC'
+      : 'SEARCH_MATCH';
+  const hasCustomFilters = selectedGenres.length > 0 || Boolean(selectedStatus) || selectedSort !== defaultSort;
+
   const tabs = [
     { id: 'popular' as Tab, label: 'Popular' },
     { id: 'latest' as Tab, label: 'Latest' },
@@ -152,7 +169,7 @@ export default function Discover() {
         />
         {searchQuery && (
           <button
-            onClick={() => { setSearchQuery(''); setActiveTab('popular'); setPage(1); }}
+            onClick={() => { if (debounceRef.current) clearTimeout(debounceRef.current); setSearchQuery(''); setAppliedSearch(''); setManga([]); setActiveTab('popular'); setPage(1); }}
             className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-800 rounded-lg transition-colors"
           >
             <X size={16} className="text-gray-500" />
@@ -187,14 +204,14 @@ export default function Discover() {
         <button
           onClick={() => setShowFilters(!showFilters)}
           className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all border ${
-            showFilters || selectedGenres.length > 0 || selectedStatus
+            showFilters || hasCustomFilters
               ? 'bg-violet-500/10 text-violet-400 border-violet-500/30'
               : 'text-gray-500 border-gray-800/50 hover:text-gray-300'
           }`}
         >
           <Filter size={16} />
           <span className="hidden sm:inline">Filters</span>
-          {(selectedGenres.length > 0 || selectedStatus) && (
+          {hasCustomFilters && (
             <span className="w-5 h-5 rounded-full bg-violet-500 text-white text-xs flex items-center justify-center">
               {selectedGenres.length + (selectedStatus ? 1 : 0)}
             </span>
