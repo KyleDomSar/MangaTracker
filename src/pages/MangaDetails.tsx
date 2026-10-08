@@ -52,6 +52,10 @@ export default function MangaDetails() {
   const defaultLibraryStatus = useSettingsStore((s) => s.settings.defaultLibraryStatus);
 
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [id]);
+
+  useEffect(() => {
     if (!manga) return;
 
     let cancelled = false;
