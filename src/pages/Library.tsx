@@ -20,11 +20,13 @@ export default function LibraryPage() {
   const [openStatusMenu, setOpenStatusMenu] = useState<number | null>(null);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [confirmBulkRemove, setConfirmBulkRemove] = useState(false);
+  const [openBulkStatusMenu, setOpenBulkStatusMenu] = useState(false);
 
   useEffect(() => {
     setSelectedIds([]);
     setOpenStatusMenu(null);
     setConfirmBulkRemove(false);
+    setOpenBulkStatusMenu(false);
   }, [activeFilter, searchQuery, viewMode]);
 
   const filteredItems = useMemo(() => {
@@ -206,25 +208,37 @@ export default function LibraryPage() {
               </button>
 
               <div className="relative">
-                <select
-                  defaultValue=""
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      handleBulkStatus(e.target.value as LibraryStatus);
-                      e.currentTarget.value = '';
-                    }
-                  }}
-                  className="appearance-none pl-3 pr-8 py-1.5 bg-gray-800/70 border border-gray-700/50 rounded-lg text-xs text-gray-300 focus:outline-none focus:border-violet-500/50 cursor-pointer"
-                  aria-label="Change status for selected manga"
+                <button
+                  type="button"
+                  onClick={() => setOpenBulkStatusMenu((current) => !current)}
+                  className="flex items-center justify-between gap-2 min-w-[145px] px-3 py-1.5 bg-gray-800/70 border border-gray-700/50 rounded-lg text-xs text-gray-300 hover:text-white hover:border-gray-600 focus:outline-none focus:border-violet-500/50 transition-colors"
+                  aria-haspopup="listbox"
+                  aria-expanded={openBulkStatusMenu}
                 >
-                  <option value="" disabled>Change status</option>
-                  <option value="READING">Reading</option>
-                  <option value="PLAN_TO_READ">Plan to Read</option>
-                  <option value="COMPLETED">Completed</option>
-                  <option value="DROPPED">Dropped</option>
-                  <option value="PAUSED">Paused</option>
-                </select>
-                <ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <span>Change status</span>
+                  <ChevronDown
+                    size={13}
+                    className={`text-gray-400 transition-transform ${openBulkStatusMenu ? 'rotate-180' : ''}`}
+                  />
+                </button>
+
+                {openBulkStatusMenu && (
+                  <div className="absolute right-0 top-full mt-1 z-40 min-w-[145px] overflow-hidden rounded-lg border border-gray-700/70 bg-[#1a1a24] shadow-xl">
+                    {(['READING', 'PLAN_TO_READ', 'COMPLETED', 'DROPPED', 'PAUSED'] as const).map((status) => (
+                      <button
+                        key={status}
+                        type="button"
+                        onClick={() => {
+                          handleBulkStatus(status);
+                          setOpenBulkStatusMenu(false);
+                        }}
+                        className="w-full px-3 py-2 text-left text-xs font-medium text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+                      >
+                        {getLibraryStatusLabel(status)}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <button
@@ -420,19 +434,16 @@ export default function LibraryPage() {
               >
                 <CheckCircle size={15} />
               </button>
-              <Link
-                to={`/manga/${item.mangaId}`}
-                className="block group flex-1 min-w-0"
-              >
-              <Card className="p-3 hover:border-violet-500/30 transition-all">
+              <Card className="p-3 flex-1 min-w-0 hover:border-violet-500/30 transition-all">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-16 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0">
-                    <img src={item.cover} alt={item.title} className="w-full h-full object-cover" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-medium text-gray-200 line-clamp-1 group-hover:text-violet-400 transition-colors">
-                      {item.title}
-                    </h3>
+                  <Link to={`/manga/${item.mangaId}`} className="flex items-start gap-3 flex-1 min-w-0 group">
+                    <div className="w-12 h-16 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0">
+                      <img src={item.cover} alt={item.title} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-medium text-gray-200 line-clamp-1 group-hover:text-violet-400 transition-colors">
+                        {item.title}
+                      </h3>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant={item.status === 'READING' ? 'info' : item.status === 'COMPLETED' ? 'success' : 'default'}>
                         {getLibraryStatusLabel(item.status)}
@@ -446,19 +457,19 @@ export default function LibraryPage() {
                         <ProgressBar value={item.currentChapter} max={item.totalChapters} size="sm" />
                       </div>
                     )}
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const next = item.currentChapter + 1;
-                        if (item.totalChapters && next > item.totalChapters) return;
-                        updateProgress(item.mangaId, next);
-                      }}
-                      className="mt-2 px-3 py-1.5 bg-violet-500/10 text-violet-400 rounded-lg text-xs font-medium hover:bg-violet-500/20 transition-colors"
-                    >
-                      Mark Next Chapter
-                    </button>
-                  </div>
+                    </div>
+                  </Link>
+                  <button
+                    onClick={() => {
+                      const next = item.currentChapter + 1;
+                      if (item.totalChapters && next > item.totalChapters) return;
+                      updateProgress(item.mangaId, next);
+                    }}
+                    disabled={Boolean(item.totalChapters && item.currentChapter >= item.totalChapters)}
+                    className="flex-shrink-0 px-3 py-1.5 bg-violet-500/10 text-violet-400 rounded-lg text-xs font-medium hover:bg-violet-500/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {item.totalChapters && item.currentChapter >= item.totalChapters ? 'Done' : 'Mark Next'}
+                  </button>
                   <div className="text-right flex-shrink-0">
                     <p className="text-xs text-gray-500">
                       {item.lastReadDate
@@ -471,7 +482,6 @@ export default function LibraryPage() {
                   </div>
                 </div>
               </Card>
-              </Link>
             </div>
           ))}
         </div>
