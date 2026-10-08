@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Plus, CheckCircle, TrendingUp, AlertTriangle, Clock } from 'lucide-react';
+import { BookOpen, Plus, CheckCircle, TrendingUp, Clock } from 'lucide-react';
 import { useActivityStore, getActivityLabel } from '../store/stores';
 import { Card, EmptyState, EmptyIcons } from '../components/UI';
 import type { ActivityType } from '../models/types';
@@ -12,7 +12,7 @@ function getActivityIcon(type: ActivityType) {
     CHAPTER_READ: <CheckCircle size={14} className="text-violet-400" />,
     PROGRESS_UPDATED: <TrendingUp size={14} className="text-indigo-400" />,
     STATUS_CHANGED: <Clock size={14} className="text-yellow-400" />,
-    COMPLETED: <AlertTriangle size={14} className="text-emerald-400" />,
+    COMPLETED: <CheckCircle size={14} className="text-emerald-400" />,
   };
   return icons[type];
 }
