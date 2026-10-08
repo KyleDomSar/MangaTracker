@@ -266,7 +266,7 @@ export default function LibraryPage() {
               <button
                 type="button"
                 onClick={() => setSelectedIds([])}
-                className="p-1.5 text-gray-500 hover:text-white transition-colors"
+                className="p-1.5 text-gray-400 hover:text-white transition-colors"
                 aria-label="Clear selection"
                 title="Clear selection"
               >
