@@ -98,8 +98,6 @@ Open the app in your browser and start building your reading library.
 | AniList GraphQL API | Manga catalog, search, and title metadata |
 | MangaBaka API | Additional chapter-count lookup when available |
 | Lucide React | Interface icons |
-| Framer Motion | UI animation utilities |
-| Recharts | Charts and data visualization components |
 | Vercel | Live deployment |
 
 ## How It Works
