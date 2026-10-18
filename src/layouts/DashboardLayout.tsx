@@ -40,7 +40,7 @@ export default function DashboardLayout() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1">
+        <nav aria-label="Primary" className="flex-1 p-4 space-y-1">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path || 
               (item.path !== '/' && location.pathname.startsWith(item.path));
@@ -90,8 +90,8 @@ export default function DashboardLayout() {
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#12121a]/95 backdrop-blur-sm border-t border-gray-800/50">
-        <div className="flex items-center gap-1 overflow-x-auto px-2 py-2 scrollbar-hide">
+      <nav aria-label="Primary mobile" className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#12121a]/95 backdrop-blur-sm border-t border-gray-800/50">
+        <div className="flex items-stretch gap-0.5 overflow-x-auto px-2 py-2 scrollbar-hide">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path || 
               (item.path !== '/' && location.pathname.startsWith(item.path));
@@ -99,14 +99,14 @@ export default function DashboardLayout() {
               <NavLink
                 key={item.path}
                 to={item.path}
-                className={`flex min-w-[68px] flex-shrink-0 flex-col items-center gap-1 px-2 py-2 rounded-xl transition-all duration-200 ${
+                className={`flex flex-1 min-w-[52px] flex-col items-center justify-center gap-1 px-0.5 py-2 rounded-xl transition-all duration-200 ${
                   isActive
-                    ? 'text-violet-400'
-                    : 'text-gray-500'
+                    ? 'bg-violet-500/10 text-violet-400'
+                    : 'text-gray-500 hover:text-gray-300'
                 }`}
               >
                 <item.icon size={20} />
-                <span className="text-[10px] font-medium">{item.label}</span>
+                <span className="text-[10px] font-medium truncate max-w-full">{item.label}</span>
               </NavLink>
             );
           })}
