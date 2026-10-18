@@ -1,6 +1,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { LibraryItem, LibraryStatus, Activity, ActivityType, ReadingProgress, UserSettings } from '../models/types';
+import {
+  applyChapterRead,
+  applyChapterUnread,
+  applyReadToLibraryItem,
+  createProgress,
+  resolveTotalChapters,
+} from './progressLogic';
 
 // Generate unique IDs
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -104,26 +111,22 @@ export const useLibraryStore = create<LibraryState>()(
       },
       updateProgress: (mangaId, chapter) => {
         const now = new Date().toISOString();
+        const before = get().items.find((i) => i.mangaId === mangaId);
         set((state) => ({
-          items: state.items.map((i) => {
-            if (i.mangaId !== mangaId) return i;
-            const isComplete = i.totalChapters !== null && chapter >= i.totalChapters;
-            return {
-              ...i,
-              currentChapter: chapter,
-              lastReadChapter: chapter,
-              nextChapter: chapter + 1,
-              lastUpdated: now,
-              lastReadDate: now,
-              status: isComplete ? 'COMPLETED' : i.status,
-            };
-          }),
+          items: state.items.map((i) =>
+            i.mangaId === mangaId ? applyReadToLibraryItem(i, chapter, now) : i
+          ),
         }));
         const item = get().items.find((i) => i.mangaId === mangaId);
         if (item) {
-          const isComplete = item.totalChapters !== null && chapter >= (item.totalChapters || Infinity);
+          const wasComplete =
+            before !== undefined &&
+            before.totalChapters !== null &&
+            before.currentChapter >= before.totalChapters;
+          const isComplete =
+            item.totalChapters !== null && item.currentChapter >= item.totalChapters;
           useActivityStore.getState().addActivity({
-            type: isComplete ? 'COMPLETED' : 'CHAPTER_READ',
+            type: isComplete && !wasComplete ? 'COMPLETED' : 'CHAPTER_READ',
             mangaId,
             mangaTitle: item.title,
             cover: item.cover,
@@ -228,34 +231,11 @@ export const useProgressStore = create<ProgressState>()(
       progress: {},
       markChapterRead: (mangaId, chapter) => {
         set((state) => {
-          const existing = state.progress[mangaId] || {
-            mangaId,
-            currentChapter: 0,
-            lastReadChapter: 0,
-            nextChapter: 1,
-            totalChapters: null,
-            lastReadDate: null,
-            chaptersRead: [],
-          };
-          // Reading a later chapter means the skipped chapters before it
-          // are also treated as read for progress tracking.
-          const chaptersRead = Array.from(
-            new Set([
-              ...existing.chaptersRead,
-              ...Array.from({ length: Math.max(0, chapter) }, (_, index) => index + 1),
-            ])
-          ).sort((a, b) => a - b);
+          const existing = state.progress[mangaId] ?? createProgress(mangaId, null);
           return {
             progress: {
               ...state.progress,
-              [mangaId]: {
-                ...existing,
-                currentChapter: Math.max(existing.currentChapter, chapter),
-                lastReadChapter: chapter,
-                nextChapter: chapter + 1,
-                lastReadDate: new Date().toISOString(),
-                chaptersRead,
-              },
+              [mangaId]: applyChapterRead(existing, chapter, new Date().toISOString()),
             },
           };
         });
@@ -264,18 +244,10 @@ export const useProgressStore = create<ProgressState>()(
         set((state) => {
           const existing = state.progress[mangaId];
           if (!existing) return state;
-          const chaptersRead = existing.chaptersRead.filter((c) => c !== chapter);
-          const maxRead = chaptersRead.length > 0 ? Math.max(...chaptersRead) : 0;
           return {
             progress: {
               ...state.progress,
-              [mangaId]: {
-                ...existing,
-                currentChapter: maxRead,
-                lastReadChapter: chaptersRead.length > 0 ? chaptersRead[chaptersRead.length - 1] : 0,
-                nextChapter: maxRead + 1,
-                chaptersRead,
-              },
+              [mangaId]: applyChapterUnread(existing, chapter),
             },
           };
         });
@@ -293,13 +265,14 @@ export const useProgressStore = create<ProgressState>()(
           const existing = state.progress[mangaId];
 
           if (existing) {
-            // AniList may learn the chapter count later. Keep user progress,
-            // but update the metadata when a real total becomes available.
-            if (existing.totalChapters === null && totalChapters !== null) {
+            // AniList may learn or correct the chapter count later. Keep user
+            // progress, but keep the metadata fresh when a real total arrives.
+            const nextTotal = resolveTotalChapters(existing.totalChapters, totalChapters);
+            if (nextTotal !== existing.totalChapters) {
               return {
                 progress: {
                   ...state.progress,
-                  [mangaId]: { ...existing, totalChapters },
+                  [mangaId]: { ...existing, totalChapters: nextTotal },
                 },
               };
             }
@@ -309,15 +282,7 @@ export const useProgressStore = create<ProgressState>()(
           return {
             progress: {
               ...state.progress,
-              [mangaId]: {
-                mangaId,
-                currentChapter: 0,
-                lastReadChapter: 0,
-                nextChapter: 1,
-                totalChapters,
-                lastReadDate: null,
-                chaptersRead: [],
-              },
+              [mangaId]: createProgress(mangaId, totalChapters),
             },
           };
         });
