@@ -5,6 +5,8 @@ import DashboardLayout from './layouts/DashboardLayout';
 import { OfflineBanner, LoadingSpinner } from './components/UI';
 import ErrorBoundary from './components/ErrorBoundary';
 import Toaster from './components/Toaster';
+import { useSettingsStore } from './store/stores';
+import { applyTheme } from './theme/themes';
 
 // Pages are code-split so the first load only ships the shell plus the
 // page actually being visited.
@@ -50,6 +52,16 @@ function PageTitle() {
   return null;
 }
 
+function ThemeSync() {
+  const theme = useSettingsStore((s) => s.settings.theme);
+
+  useEffect(() => {
+    applyTheme(theme);
+  }, [theme]);
+
+  return null;
+}
+
 function NotFound() {
   return (
     <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
@@ -80,6 +92,7 @@ export default function App() {
       <HashRouter>
         <ScrollToTop />
         <PageTitle />
+        <ThemeSync />
         <OfflineBanner />
         <Toaster />
         <Routes>

@@ -78,8 +78,10 @@ export interface DiscoverFilters {
   page: number;
 }
 
+export type ThemeId = 'violet' | 'blue' | 'cyan' | 'emerald' | 'amber' | 'rose';
+
 export interface UserSettings {
-  theme: 'dark' | 'light';
+  theme: ThemeId;
   defaultLibraryStatus: LibraryStatus;
 }
 

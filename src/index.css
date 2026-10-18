@@ -67,13 +67,13 @@ body {
 
 /* Selection color */
 ::selection {
-  background: rgba(139, 92, 246, 0.3);
+  background: color-mix(in oklab, var(--color-violet-500) 30%, transparent);
   color: white;
 }
 
 /* Focus styles */
 :focus-visible {
-  outline: 2px solid rgba(139, 92, 246, 0.5);
+  outline: 2px solid color-mix(in oklab, var(--color-violet-500) 50%, transparent);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -117,4 +117,55 @@ body {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* Accent themes — override the violet/indigo palette used across the app. */
+:root[data-theme='blue'] {
+  --color-violet-300: oklch(80.9% 0.105 251.813);
+  --color-violet-400: oklch(70.7% 0.165 254.624);
+  --color-violet-500: oklch(62.3% 0.214 259.815);
+  --color-violet-600: oklch(54.6% 0.245 262.881);
+  --color-indigo-400: oklch(70.7% 0.165 254.624);
+  --color-indigo-500: oklch(62.3% 0.214 259.815);
+  --color-indigo-600: oklch(54.6% 0.245 262.881);
+}
+
+:root[data-theme='cyan'] {
+  --color-violet-300: oklch(86.5% 0.127 207.078);
+  --color-violet-400: oklch(78.9% 0.154 211.53);
+  --color-violet-500: oklch(71.5% 0.143 215.221);
+  --color-violet-600: oklch(60.9% 0.126 221.723);
+  --color-indigo-400: oklch(78.9% 0.154 211.53);
+  --color-indigo-500: oklch(71.5% 0.143 215.221);
+  --color-indigo-600: oklch(60.9% 0.126 221.723);
+}
+
+:root[data-theme='emerald'] {
+  --color-violet-300: oklch(84.5% 0.143 164.978);
+  --color-violet-400: oklch(76.5% 0.177 163.223);
+  --color-violet-500: oklch(69.6% 0.17 162.48);
+  --color-violet-600: oklch(59.6% 0.145 163.225);
+  --color-indigo-400: oklch(76.5% 0.177 163.223);
+  --color-indigo-500: oklch(69.6% 0.17 162.48);
+  --color-indigo-600: oklch(59.6% 0.145 163.225);
+}
+
+:root[data-theme='amber'] {
+  --color-violet-300: oklch(87.9% 0.169 91.605);
+  --color-violet-400: oklch(82.8% 0.189 84.429);
+  --color-violet-500: oklch(76.9% 0.188 70.08);
+  --color-violet-600: oklch(66.6% 0.179 58.318);
+  --color-indigo-400: oklch(82.8% 0.189 84.429);
+  --color-indigo-500: oklch(76.9% 0.188 70.08);
+  --color-indigo-600: oklch(66.6% 0.179 58.318);
+}
+
+:root[data-theme='rose'] {
+  --color-violet-300: oklch(81% 0.117 11.638);
+  --color-violet-400: oklch(71.2% 0.194 13.428);
+  --color-violet-500: oklch(64.5% 0.246 16.439);
+  --color-violet-600: oklch(58.6% 0.253 17.585);
+  --color-indigo-400: oklch(71.2% 0.194 13.428);
+  --color-indigo-500: oklch(64.5% 0.246 16.439);
+  --color-indigo-600: oklch(58.6% 0.253 17.585);
 }

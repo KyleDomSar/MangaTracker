@@ -12,6 +12,21 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" type="image/svg+xml" href="/icons/icon-192.svg" />
     <title>MangaTracker - Track Your Manga Journey</title>
+    <script>
+      // Apply the saved accent theme before first paint to avoid a flash.
+      (function () {
+        try {
+          var saved = localStorage.getItem('manhwa-settings');
+          if (!saved) return;
+          var theme = (JSON.parse(saved).state || {}).theme;
+          if (typeof theme === 'string' && theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+          }
+        } catch (e) {
+          /* ignore malformed storage */
+        }
+      })();
+    </script>
   </head>
   <body class="dark">
     <div id="root"></div>

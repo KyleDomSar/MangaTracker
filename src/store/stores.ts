@@ -317,7 +317,7 @@ export const useSettingsStore = create<SettingsState>()(
   persist(
     (set, get) => ({
       settings: {
-        theme: 'dark',
+        theme: 'violet',
         defaultLibraryStatus: 'READING',
       },
       updateSettings: (newSettings) => {
