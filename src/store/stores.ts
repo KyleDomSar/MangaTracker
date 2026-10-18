@@ -8,6 +8,7 @@ import {
   createProgress,
   resolveTotalChapters,
 } from './progressLogic';
+import { useToastStore } from './toastStore';
 
 // Generate unique IDs
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -49,12 +50,14 @@ export const useLibraryStore = create<LibraryState>()(
           chapter: null,
           metadata: { status: item.status },
         });
+        useToastStore.getState().pushToast('Added to library');
       },
       removeItem: (mangaId) => {
         set((state) => ({
           items: state.items.filter((i) => i.mangaId !== mangaId),
         }));
         useProgressStore.getState().removeProgress(mangaId);
+        useToastStore.getState().pushToast('Removed from library');
       },
       updateStatus: (mangaId, status) => {
         set((state) => ({
@@ -75,6 +78,7 @@ export const useLibraryStore = create<LibraryState>()(
             metadata: { newStatus: status },
           });
         }
+        useToastStore.getState().pushToast(`Moved to ${getLibraryStatusLabel(status)}`);
       },
       syncProgress: (mangaId, progress) => {
         set((state) => ({
@@ -135,6 +139,7 @@ export const useLibraryStore = create<LibraryState>()(
         }
         // Update progress store
         useProgressStore.getState().markChapterRead(mangaId, chapter);
+        useToastStore.getState().pushToast('Progress updated');
       },
       getItem: (mangaId) => get().items.find((i) => i.mangaId === mangaId),
       isInLibrary: (mangaId) => get().items.some((i) => i.mangaId === mangaId),
@@ -143,6 +148,7 @@ export const useLibraryStore = create<LibraryState>()(
         set({ items: [] });
         const progressStore = useProgressStore.getState();
         mangaIds.forEach((mangaId) => progressStore.removeProgress(mangaId));
+        useToastStore.getState().pushToast('Library cleared');
       },
     }),
     {
@@ -185,7 +191,10 @@ export const useActivityStore = create<ActivityState>()(
           activities: [newActivity, ...state.activities].slice(0, 500),
         }));
       },
-      clearActivities: () => set({ activities: [] }),
+      clearActivities: () => {
+        set({ activities: [] });
+        useToastStore.getState().pushToast('Activity history cleared');
+      },
       getRecentActivities: (limit) => get().activities.slice(0, limit),
       getActivitiesByDate: () => {
         const activities = get().activities;
@@ -251,6 +260,7 @@ export const useProgressStore = create<ProgressState>()(
             },
           };
         });
+        useToastStore.getState().pushToast('Chapter marked unread');
       },
       getProgress: (mangaId) => get().progress[mangaId],
       removeProgress: (mangaId) => {
@@ -323,6 +333,7 @@ export const useSettingsStore = create<SettingsState>()(
           }
         }
         keysToRemove.forEach((key) => localStorage.removeItem(key));
+        useToastStore.getState().pushToast('Cache cleared');
       },
     }),
     {

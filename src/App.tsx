@@ -4,6 +4,7 @@ import { Compass } from 'lucide-react';
 import DashboardLayout from './layouts/DashboardLayout';
 import { OfflineBanner, LoadingSpinner } from './components/UI';
 import ErrorBoundary from './components/ErrorBoundary';
+import Toaster from './components/Toaster';
 
 // Pages are code-split so the first load only ships the shell plus the
 // page actually being visited.
@@ -80,6 +81,7 @@ export default function App() {
         <ScrollToTop />
         <PageTitle />
         <OfflineBanner />
+        <Toaster />
         <Routes>
           <Route element={<DashboardLayout />}>
             <Route path="/" element={withSuspense(<Dashboard />)} />
