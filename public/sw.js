@@ -4,7 +4,7 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.add("/"))
   );
-  self.skipWaiting();
+  event.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener("activate", (event) => {
@@ -17,13 +17,13 @@ self.addEventListener("activate", (event) => {
       )
     )
   );
-  self.clients.claim();
+  event.waitUntil(self.clients.claim());
 });
 
 self.addEventListener("fetch", (event) => {
   const request = event.request;
 
-  if (request.method !== "GET" || !request.url.startsWith(self.location.origin)) {
+  if (request.method !== "GET" || new URL(request.url).origin !== self.location.origin) {
     return;
   }
 
@@ -33,7 +33,11 @@ self.addEventListener("fetch", (event) => {
         // Only cache successful responses; never serve a cached 404/500.
         if (response.ok) {
           const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          // Tie the write to the event lifetime so the worker cannot be
+          // terminated before the cache put completes.
+          event.waitUntil(
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy))
+          );
         }
         return response;
       })
