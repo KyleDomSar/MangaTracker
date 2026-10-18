@@ -27,6 +27,8 @@ export default function Discover() {
   // Debounced search: only the settled query triggers requests.
   const debouncedSearch = useCallback((query: string) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!query.trim()) return;
+
     debounceRef.current = setTimeout(() => {
       const trimmed = query.trim();
       if (trimmed) {
@@ -35,6 +37,12 @@ export default function Discover() {
         setPage(1);
       }
     }, 500);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
   }, []);
 
   // Load data
@@ -152,6 +160,13 @@ export default function Discover() {
     setPage(1);
   };
 
+  const defaultSort = activeTab === 'latest'
+    ? 'UPDATED_AT_DESC'
+    : activeTab === 'ongoing' || activeTab === 'completed' || activeTab === 'popular'
+      ? 'POPULARITY_DESC'
+      : 'SEARCH_MATCH';
+  const hasCustomFilters = selectedGenres.length > 0 || Boolean(selectedStatus) || selectedSort !== defaultSort;
+
   const tabs = [
     { id: 'popular' as Tab, label: 'Popular' },
     { id: 'latest' as Tab, label: 'Latest' },
@@ -164,7 +179,7 @@ export default function Discover() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-white mb-2">Discover</h1>
-        <p className="text-gray-500 text-sm">Find your next favorite manga or manhwa</p>
+        <p className="text-gray-400 text-sm">Find your next favorite manga or manhwa</p>
       </div>
 
       {/* Search Bar */}
@@ -201,7 +216,7 @@ export default function Discover() {
               className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap flex-shrink-0 transition-all ${
                 activeTab === tab.id
                   ? 'bg-violet-500/20 text-violet-400'
-                  : 'text-gray-500 hover:text-gray-300'
+                  : 'text-gray-400 hover:text-gray-200'
               }`}
             >
               {tab.label}
@@ -219,14 +234,14 @@ export default function Discover() {
           aria-expanded={showFilters}
           aria-label="Toggle filters"
           className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all border ${
-            showFilters || selectedGenres.length > 0 || selectedStatus
+            showFilters || hasCustomFilters
               ? 'bg-violet-500/10 text-violet-400 border-violet-500/30'
-              : 'text-gray-500 border-gray-800/50 hover:text-gray-300'
+              : 'text-gray-400 border-gray-800/50 hover:text-gray-200'
           }`}
         >
           <Filter size={16} />
           <span className="hidden sm:inline">Filters</span>
-          {(selectedGenres.length > 0 || selectedStatus) && (
+          {hasCustomFilters && (
             <span className="w-5 h-5 rounded-full bg-violet-500 text-white text-xs flex items-center justify-center">
               {selectedGenres.length + (selectedStatus ? 1 : 0)}
             </span>
@@ -249,7 +264,7 @@ export default function Discover() {
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all border ${
                     selectedGenres.includes(genre)
                       ? 'bg-violet-500/20 text-violet-400 border-violet-500/30'
-                      : 'bg-gray-800/50 text-gray-400 border-gray-700/50 hover:text-gray-200'
+                      : 'bg-gray-800/70 text-gray-300 border-gray-700/50 hover:text-white'
                   }`}
                 >
                   {genre}
@@ -347,7 +362,7 @@ export default function Discover() {
               >
                 <ChevronLeft size={18} />
               </button>
-              <span className="text-sm text-gray-400 px-3">
+              <span className="text-sm text-gray-300 px-3">
                 Page {page} of {totalPages}
               </span>
               <button

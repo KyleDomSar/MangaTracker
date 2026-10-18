@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Plus, CheckCircle, TrendingUp, AlertTriangle, Clock } from 'lucide-react';
+import { BookOpen, Plus, CheckCircle, TrendingUp, Clock } from 'lucide-react';
 import { useActivityStore, getActivityLabel } from '../store/stores';
 import { Card, EmptyState, EmptyIcons } from '../components/UI';
 import type { ActivityType } from '../models/types';
@@ -12,7 +12,7 @@ function getActivityIcon(type: ActivityType) {
     CHAPTER_READ: <CheckCircle size={14} className="text-violet-400" />,
     PROGRESS_UPDATED: <TrendingUp size={14} className="text-indigo-400" />,
     STATUS_CHANGED: <Clock size={14} className="text-yellow-400" />,
-    COMPLETED: <AlertTriangle size={14} className="text-emerald-400" />,
+    COMPLETED: <CheckCircle size={14} className="text-emerald-400" />,
   };
   return icons[type];
 }
@@ -61,7 +61,7 @@ export default function ActivityPage() {
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-white">Activity</h1>
-          <p className="text-gray-500 text-sm mt-1">Your reading history and actions</p>
+          <p className="text-gray-400 text-sm mt-1">Your reading history and actions</p>
         </div>
         <EmptyState
           icon={EmptyIcons.book}
@@ -84,7 +84,7 @@ export default function ActivityPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-white">Activity</h1>
-        <p className="text-gray-500 text-sm mt-1">{activities.length} activities recorded</p>
+        <p className="text-gray-400 text-sm mt-1">{activities.length} activities recorded</p>
       </div>
 
       {/* Activity Groups */}
@@ -117,25 +117,25 @@ export default function ActivityPage() {
                               {activity.mangaTitle}
                             </span>
                             {activity.type === 'CHAPTER_READ' && (
-                              <span className="text-gray-500"> — Read Chapter {activity.chapter}</span>
+                              <span className="text-gray-300"> — Read Chapter {activity.chapter}</span>
                             )}
                             {activity.type === 'COMPLETED' && (
-                              <span className="text-gray-500"> — Completed!</span>
+                              <span className="text-gray-300"> — Completed!</span>
                             )}
                             {activity.type === 'ADDED_TO_LIBRARY' && (
-                              <span className="text-gray-500"> — Added to Library</span>
+                              <span className="text-gray-300"> — Added to Library</span>
                             )}
                             {activity.type === 'STARTED_READING' && (
-                              <span className="text-gray-500"> — Started Reading</span>
+                              <span className="text-gray-300"> — Started Reading</span>
                             )}
                             {activity.type === 'STATUS_CHANGED' && (
-                              <span className="text-gray-500"> — {getActivityLabel(activity.type)}</span>
+                              <span className="text-gray-300"> — {getActivityLabel(activity.type)}</span>
                             )}
                             {activity.type === 'PROGRESS_UPDATED' && (
-                              <span className="text-gray-500"> — Progress Updated</span>
+                              <span className="text-gray-300"> — Progress Updated</span>
                             )}
                           </p>
-                          <p className="text-xs text-gray-600 mt-0.5">
+                          <p className="text-xs text-gray-400 mt-0.5">
                             {new Date(activity.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </p>
                         </div>

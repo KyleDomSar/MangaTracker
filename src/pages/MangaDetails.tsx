@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Star, BookOpen, CheckCircle, Plus, Trash2,
-  ChevronRight, Users, ExternalLink
+  ChevronRight, Users
 } from 'lucide-react';
 import { getMangaDetails } from '../api/anilist';
 import { getChapterInfo } from '../api/mangabaka';
@@ -10,6 +10,14 @@ import type { MangaDetail } from '../api/anilist';
 import { useLibraryStore, useProgressStore, useActivityStore, useSettingsStore, getLibraryStatusColor, getLibraryStatusLabel } from '../store/stores';
 import { Card, ProgressBar, Badge, LoadingSpinner, ErrorState } from '../components/UI';
 import type { LibraryStatus } from '../models/types';
+
+function formatRelationType(value: string) {
+  return value
+    .toLowerCase()
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
 
 export default function MangaDetails() {
   const { id } = useParams<{ id: string }>();
@@ -24,6 +32,7 @@ export default function MangaDetails() {
   const [chapterSource, setChapterSource] = useState<string | null>(null);
   const [chapterLookupLoading, setChapterLookupLoading] = useState(false);
   const [reloadToken, setReloadToken] = useState(0);
+  const [chapterInput, setChapterInput] = useState('');
   const [visibleChapters, setVisibleChapters] = useState(50);
   const [hideRead, setHideRead] = useState(false);
   const statusMenuRef = useRef<HTMLDivElement>(null);
@@ -230,6 +239,15 @@ export default function MangaDetails() {
     handleMarkChapter(currentChapter, false);
   };
 
+  const handleChapterJump = () => {
+    if (!manga) return;
+    const chapter = Number(chapterInput);
+    if (!Number.isInteger(chapter) || chapter < 1) return;
+    if (chapterTotal !== null && chapter > chapterTotal) return;
+    handleMarkChapter(chapter, true);
+    setChapterInput('');
+  };
+
   // Validate the route after all hooks have been declared.
   if (!id || isNaN(mangaId) || mangaId <= 0) {
     return (
@@ -296,10 +314,10 @@ export default function MangaDetails() {
             <div>
               <h1 className="text-2xl lg:text-3xl font-bold text-white">{title}</h1>
               {manga.title.native && (
-                <p className="text-sm text-gray-500 mt-1">{manga.title.native}</p>
+                <p className="text-sm text-gray-400 mt-1">{manga.title.native}</p>
               )}
               {manga.title.english && manga.title.romaji !== manga.title.english && (
-                <p className="text-sm text-gray-500">{manga.title.romaji}</p>
+                <p className="text-sm text-gray-400">{manga.title.romaji}</p>
               )}
             </div>
 
@@ -366,7 +384,7 @@ export default function MangaDetails() {
                 </>
               ) : (
                 <button
-                  onClick={() => handleAddToLibrary('READING')}
+                  onClick={() => handleAddToLibrary()}
                   className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-violet-500 hover:bg-violet-600 transition-colors"
                 >
                   <Plus size={14} />
@@ -384,7 +402,7 @@ export default function MangaDetails() {
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div>
               <h3 className="text-sm font-bold text-gray-300">Reading Progress</h3>
-              <p className="text-xs text-gray-600 mt-1">
+              <p className="text-xs text-gray-400 mt-1">
                 {chapterLookupLoading
                   ? 'Checking chapter count...'
                   : chapterSource
@@ -401,7 +419,7 @@ export default function MangaDetails() {
 
           <div className="flex items-end gap-2 mt-5 mb-3">
             <p className="text-3xl font-bold text-white">{libraryItem.currentChapter}</p>
-            <p className="text-sm text-gray-500 mb-1">
+            <p className="text-sm text-gray-400 mb-1">
               {chapterTotal ? `/ ${chapterTotal} chapters` : '/ total unavailable'}
             </p>
           </div>
@@ -413,13 +431,13 @@ export default function MangaDetails() {
 
           <div className="grid grid-cols-2 gap-3 mt-4">
             <div className="rounded-xl bg-gray-800/30 border border-gray-800/50 p-3">
-              <p className="text-[11px] uppercase tracking-wide text-gray-600">Last Read</p>
+              <p className="text-[11px] uppercase tracking-wide text-gray-400">Last Read</p>
               <p className="text-sm text-gray-300 mt-1">
                 {libraryItem.lastReadChapter > 0 ? `Chapter ${libraryItem.lastReadChapter}` : 'Not started'}
               </p>
             </div>
             <div className="rounded-xl bg-gray-800/30 border border-gray-800/50 p-3">
-              <p className="text-[11px] uppercase tracking-wide text-gray-600">Next Chapter</p>
+              <p className="text-[11px] uppercase tracking-wide text-gray-400">Next Chapter</p>
               <p className="text-sm text-gray-300 mt-1">
                 {chapterTotal && libraryItem.nextChapter > chapterTotal ? 'Completed' : `Chapter ${libraryItem.nextChapter}`}
               </p>
@@ -441,6 +459,34 @@ export default function MangaDetails() {
             >
               Mark Current Unread
             </button>
+          </div>
+
+          <div className="mt-4 pt-4 border-t border-gray-800/50">
+            <p className="text-xs font-medium text-gray-400 mb-2">Jump to chapter</p>
+            <div className="flex gap-2">
+              <input
+                type="number"
+                min="1"
+                max={chapterTotal ?? undefined}
+                value={chapterInput}
+                onChange={(e) => setChapterInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleChapterJump();
+                }}
+                placeholder={chapterTotal ? `1-${chapterTotal}` : 'Chapter number'}
+                className="w-full sm:max-w-xs px-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-violet-500/50"
+              />
+              <button
+                onClick={handleChapterJump}
+                disabled={!chapterInput.trim()}
+                className="px-4 py-2 bg-gray-800 text-gray-300 border border-gray-700/50 rounded-lg text-xs font-medium hover:text-white hover:border-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                Mark Read
+              </button>
+            </div>
+            <p className="text-[11px] text-gray-400 mt-2">
+              Marks the selected chapter and all chapters before it as read.
+            </p>
           </div>
         </Card>
       )}
@@ -501,9 +547,9 @@ export default function MangaDetails() {
             <BookOpen size={14} />
             Chapters
             {chapterTotal ? (
-              <span className="text-gray-500 font-normal">({chapterTotal})</span>
+              <span className="text-gray-400 font-normal">({chapterTotal})</span>
             ) : (
-              <span className="text-gray-600 font-normal text-xs">(count unavailable)</span>
+              <span className="text-gray-400 font-normal text-xs">(count unavailable)</span>
             )}
           </h3>
           <button
@@ -549,7 +595,7 @@ export default function MangaDetails() {
                   >
                     {isRead && <CheckCircle size={12} className="text-white" />}
                   </button>
-                  <span className={`text-sm ${isRead ? 'text-gray-500' : 'text-gray-300'}`}>
+                  <span className={`text-sm ${isRead ? 'text-gray-400' : 'text-gray-300'}`}>
                     Chapter {ch}
                   </span>
                 </div>
@@ -576,10 +622,10 @@ export default function MangaDetails() {
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
             {manga.recommended.slice(0, 10).map((item) => (
               <Link key={item.id} to={`/manga/${item.id}`} className="flex-shrink-0 w-20 group">
-                <div className="w-16 h-22 rounded-lg overflow-hidden bg-gray-800 mx-auto">
+                <div className="w-16 aspect-[3/4] rounded-lg overflow-hidden bg-gray-800 mx-auto">
                   <img src={item.coverImage.large || item.coverImage.medium} alt="" className="w-full h-full object-cover" />
                 </div>
-                <p className="text-xs text-gray-500 mt-1.5 line-clamp-2 text-center group-hover:text-violet-400 transition-colors">
+                <p className="text-xs text-gray-300 mt-1.5 line-clamp-2 text-center group-hover:text-violet-400 transition-colors">
                   {item.title.english || item.title.romaji}
                 </p>
               </Link>
@@ -602,10 +648,10 @@ export default function MangaDetails() {
                 <div className="w-16 h-22 rounded-lg overflow-hidden bg-gray-800 mx-auto">
                   <img src={rel.coverImage.large || rel.coverImage.medium} alt="" className="w-full h-full object-cover" />
                 </div>
-                <p className="text-xs text-gray-500 mt-1.5 line-clamp-2 text-center group-hover:text-violet-400 transition-colors">
+                <p className="text-xs text-gray-300 mt-1.5 line-clamp-2 text-center group-hover:text-violet-400 transition-colors">
                   {rel.title.english || rel.title.romaji}
                 </p>
-                <p className="text-[10px] text-gray-600 text-center">{rel.relationType}</p>
+                <p className="text-[10px] text-gray-400 text-center">{formatRelationType(rel.relationType)}</p>
               </Link>
             ))}
           </div>

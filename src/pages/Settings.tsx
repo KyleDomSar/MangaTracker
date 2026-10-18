@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
-import { Trash2, AlertTriangle, Info, Database, BookOpen, Activity } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { Trash2, AlertTriangle, Info, Database, BookOpen, Activity, ChevronDown } from 'lucide-react';
 import { useLibraryStore, useActivityStore, useSettingsStore, getLibraryStatusLabel } from '../store/stores';
 import { Card } from '../components/UI';
 
 export default function SettingsPage() {
   const [confirmClear, setConfirmClear] = useState<string | null>(null);
+  const [backupMessage, setBackupMessage] = useState<string | null>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
   const clearLibrary = useLibraryStore((s) => s.clearLibrary);
   const clearActivities = useActivityStore((s) => s.clearActivities);
   const clearCache = useSettingsStore((s) => s.clearCache);
@@ -43,6 +45,66 @@ export default function SettingsPage() {
     items: SettingItem[];
   }
 
+  const backupKeys = ['manhwa-library', 'manhwa-progress', 'manhwa-activities', 'manhwa-settings'];
+
+  const handleExportData = () => {
+    const data: Record<string, string | null> = {};
+    backupKeys.forEach((key) => {
+      data[key] = localStorage.getItem(key);
+    });
+
+    const blob = new Blob([JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), data }, null, 2)], {
+      type: 'application/json',
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `mangatracker-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    link.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setBackupMessage('Backup exported successfully.');
+  };
+
+  const handleImportData = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text) as { version?: number; data?: Record<string, unknown> };
+      if (!parsed || parsed.version !== 1 || !parsed.data || typeof parsed.data !== 'object') {
+        throw new Error('Invalid backup file.');
+      }
+
+      const restoredValues: Record<string, string | null> = {};
+      backupKeys.forEach((key) => {
+        const value = parsed.data?.[key];
+        if (value === null) {
+          restoredValues[key] = null;
+          return;
+        }
+        if (typeof value !== 'string') {
+          throw new Error('Invalid backup data for ' + key + '.');
+        }
+        const persisted = JSON.parse(value) as { state?: unknown };
+        if (!persisted || typeof persisted !== 'object' || !('state' in persisted)) {
+          throw new Error('Invalid backup data for ' + key + '.');
+        }
+        restoredValues[key] = value;
+      });
+
+      backupKeys.forEach((key) => {
+        const value = restoredValues[key];
+        if (value === null) localStorage.removeItem(key);
+        else if (typeof value === 'string') localStorage.setItem(key, value);
+      });
+      setBackupMessage('Backup restored. Reloading MangaTracker...');
+      window.setTimeout(() => window.location.reload(), 500);
+    } catch (error) {
+      setBackupMessage(error instanceof Error ? error.message : 'Could not restore backup.');
+    }
+  };
   const settingsSections: SettingSection[] = [
     {
       title: 'Data Management',
@@ -79,7 +141,7 @@ export default function SettingsPage() {
     <div className="space-y-6 max-w-2xl">
       <div>
         <h1 className="text-2xl font-bold text-white">Settings</h1>
-        <p className="text-gray-500 text-sm mt-1">Manage your app preferences and data</p>
+        <p className="text-gray-400 text-sm mt-1">Manage your app preferences and data</p>
       </div>
 
       {/* Settings Sections */}
@@ -95,9 +157,9 @@ export default function SettingsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="text-sm font-medium text-gray-200">{item.label}</h3>
-                    <p className="text-xs text-gray-500 mt-0.5">{item.description}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{item.description}</p>
                     {item.detail && (
-                      <p className="text-xs text-gray-600 mt-1">{item.detail}</p>
+                      <p className="text-xs text-gray-400 mt-1">{item.detail}</p>
                     )}
                   </div>
                   {confirmClear === item.action ? (
@@ -134,6 +196,36 @@ export default function SettingsPage() {
         </div>
       ))}
 
+      {/* Backup */}
+      <div>
+        <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Backup</h2>
+        <Card className="p-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h3 className="text-sm font-medium text-gray-200">Export or restore your data</h3>
+              <p className="text-xs text-gray-400 mt-0.5">Save your library, progress, activity, and settings as a local JSON backup.</p>
+            </div>
+            <div className="flex gap-2 flex-shrink-0">
+              <button
+                type="button"
+                onClick={handleExportData}
+                className="px-3 py-2 bg-violet-500/10 text-violet-400 border border-violet-500/20 rounded-lg text-xs font-medium hover:bg-violet-500/20 transition-colors"
+              >
+                Export
+              </button>
+              <button
+                type="button"
+                onClick={() => importInputRef.current?.click()}
+                className="px-3 py-2 bg-gray-800 text-gray-300 border border-gray-700/50 rounded-lg text-xs font-medium hover:text-white hover:border-gray-600 transition-colors"
+              >
+                Restore
+              </button>
+              <input ref={importInputRef} type="file" accept="application/json,.json" onChange={handleImportData} className="hidden" />
+            </div>
+          </div>
+          {backupMessage && <p className="text-xs text-gray-300 mt-3">{backupMessage}</p>}
+        </Card>
+      </div>
       {/* About */}
       <div>
         <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Reading</h2>
@@ -141,17 +233,23 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between gap-4">
             <div>
               <h3 className="text-sm font-medium text-gray-200">Default Library Status</h3>
-              <p className="text-xs text-gray-500 mt-0.5">Status used when you add a new title from Manga Details.</p>
+              <p className="text-xs text-gray-400 mt-0.5">Status used when you add a new title from Manga Details.</p>
             </div>
-            <select
-              value={settings.defaultLibraryStatus}
-              onChange={(e) => updateSettings({ defaultLibraryStatus: e.target.value as typeof settings.defaultLibraryStatus })}
-              className="px-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-xs text-gray-300 focus:outline-none"
-            >
-              {(['READING', 'PLAN_TO_READ', 'COMPLETED', 'DROPPED', 'PAUSED'] as const).map((status) => (
-                <option key={status} value={status}>{getLibraryStatusLabel(status)}</option>
-              ))}
-            </select>
+            <div className="relative w-32 flex-shrink-0">
+              <select
+                value={settings.defaultLibraryStatus}
+                onChange={(e) => updateSettings({ defaultLibraryStatus: e.target.value as typeof settings.defaultLibraryStatus })}
+                className="appearance-none w-full pr-8 pl-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-xs text-gray-300 focus:outline-none focus:border-violet-500/50 cursor-pointer"
+              >
+                {(['READING', 'PLAN_TO_READ', 'COMPLETED', 'DROPPED', 'PAUSED'] as const).map((status) => (
+                  <option key={status} value={status}>{getLibraryStatusLabel(status)}</option>
+                ))}
+              </select>
+              <ChevronDown
+                size={14}
+                className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400"
+              />
+            </div>
           </div>
         </Card>
       </div>
@@ -165,7 +263,7 @@ export default function SettingsPage() {
             </div>
             <div>
               <h3 className="text-base font-bold text-white">MangaTracker</h3>
-              <p className="text-xs text-gray-500">Version 1.0.0</p>
+              <p className="text-xs text-gray-400">Version 1.0.0</p>
             </div>
           </div>
           <p className="text-sm text-gray-400 leading-relaxed">
@@ -173,7 +271,7 @@ export default function SettingsPage() {
             Track your reading progress, manage your library, and keep your reading history organized.
           </p>
           <div className="mt-4 pt-4 border-t border-gray-800/50">
-            <div className="flex items-center gap-2 text-xs text-gray-500">
+            <div className="flex items-center gap-2 text-xs text-gray-400">
               <Info size={12} />
               <span>Metadata is provided by AniList. Reading progress and library data are stored locally in your browser.</span>
             </div>
@@ -191,7 +289,7 @@ export default function SettingsPage() {
               </div>
               <div>
                 <h3 className="text-base font-bold text-white">Are you sure?</h3>
-                <p className="text-xs text-gray-500">This action cannot be undone.</p>
+                <p className="text-xs text-gray-400">This action cannot be undone.</p>
               </div>
             </div>
             <div className="flex gap-2">

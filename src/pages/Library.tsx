@@ -1,9 +1,22 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Grid3X3, List, BookOpen, CheckCircle, Clock, AlertTriangle, Pause } from 'lucide-react';
-import { useLibraryStore, getLibraryStatusColor, getLibraryStatusLabel } from '../store/stores';
+import { Search, Grid3X3, List, BookOpen, CheckCircle, Clock, AlertTriangle, Pause, ChevronDown, Trash2, CheckSquare, X } from 'lucide-react';
+import { useLibraryStore, getLibraryStatusLabel } from '../store/stores';
 import { Card, ProgressBar, EmptyState, EmptyIcons, Badge } from '../components/UI';
 import type { LibraryItem, LibraryStatus } from '../models/types';
+
+function getLibraryBadgeClass(status: LibraryStatus) {
+  const classes: Record<LibraryStatus, string> = {
+    READING: 'bg-[#0a0a0f]/90 text-blue-300 border-blue-400/50',
+    COMPLETED: 'bg-[#0a0a0f]/90 text-green-300 border-green-400/50',
+    PLAN_TO_READ: 'bg-[#0a0a0f]/90 text-purple-300 border-purple-400/50',
+    DROPPED: 'bg-[#0a0a0f]/90 text-red-300 border-red-400/50',
+    PAUSED: 'bg-[#0a0a0f]/90 text-yellow-300 border-yellow-400/50',
+  };
+
+  return classes[status];
+}
+
 
 type FilterTab = 'ALL' | LibraryStatus;
 
@@ -14,11 +27,24 @@ function isFinished(item: LibraryItem): boolean {
 export default function LibraryPage() {
   const items = useLibraryStore((s) => s.items);
   const updateProgress = useLibraryStore((s) => s.updateProgress);
+  const updateStatus = useLibraryStore((s) => s.updateStatus);
+  const removeItem = useLibraryStore((s) => s.removeItem);
   const [activeFilter, setActiveFilter] = useState<FilterTab>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState<'updated' | 'added' | 'title' | 'progress'>('updated');
   const [sortDirection, setSortDirection] = useState<'desc' | 'asc'>('desc');
+  const [openStatusMenu, setOpenStatusMenu] = useState<number | null>(null);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [confirmBulkRemove, setConfirmBulkRemove] = useState(false);
+  const [openBulkStatusMenu, setOpenBulkStatusMenu] = useState(false);
+
+  useEffect(() => {
+    setSelectedIds([]);
+    setOpenStatusMenu(null);
+    setConfirmBulkRemove(false);
+    setOpenBulkStatusMenu(false);
+  }, [activeFilter, searchQuery, viewMode]);
 
   const filteredItems = useMemo(() => {
     let result = items;
@@ -62,6 +88,35 @@ export default function LibraryPage() {
     return result;
   }, [items, activeFilter, searchQuery, sortBy, sortDirection]);
 
+  const visibleIds = filteredItems.map((item) => item.mangaId);
+  const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.includes(id));
+
+  const toggleSelected = (mangaId: number) => {
+    setSelectedIds((current) =>
+      current.includes(mangaId)
+        ? current.filter((id) => id !== mangaId)
+        : [...current, mangaId]
+    );
+  };
+
+  const toggleSelectAllVisible = () => {
+    setSelectedIds((current) => {
+      if (allVisibleSelected) return current.filter((id) => !visibleIds.includes(id));
+      return Array.from(new Set([...current, ...visibleIds]));
+    });
+  };
+
+  const handleBulkStatus = (status: LibraryStatus) => {
+    selectedIds.forEach((mangaId) => updateStatus(mangaId, status));
+    setSelectedIds([]);
+  };
+
+  const handleBulkRemove = () => {
+    selectedIds.forEach((mangaId) => removeItem(mangaId));
+    setSelectedIds([]);
+    setConfirmBulkRemove(false);
+  };
+
   const tabs: { id: FilterTab; label: string; icon: React.ReactNode; count: number }[] = [
     { id: 'ALL', label: 'All', icon: <BookOpen size={14} />, count: items.length },
     { id: 'READING', label: 'Reading', icon: <BookOpen size={14} />, count: items.filter((i) => i.status === 'READING').length },
@@ -77,14 +132,14 @@ export default function LibraryPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Library</h1>
-          <p className="text-gray-500 text-sm">{items.length} manga in your collection</p>
+          <p className="text-gray-400 text-sm">{items.length} manga in your collection</p>
         </div>
         <div className="flex items-center gap-1 bg-[#1a1a24] p-1 rounded-lg border border-gray-800/50">
           <button
             onClick={() => setViewMode('grid')}
             aria-label="Grid view"
             aria-pressed={viewMode === 'grid'}
-            className={`p-2 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-violet-500/20 text-violet-400' : 'text-gray-500 hover:text-gray-300'}`}
+            className={`p-2 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-violet-500/20 text-violet-400' : 'text-gray-400 hover:text-gray-200'}`}
           >
             <Grid3X3 size={16} />
           </button>
@@ -92,7 +147,7 @@ export default function LibraryPage() {
             onClick={() => setViewMode('list')}
             aria-label="List view"
             aria-pressed={viewMode === 'list'}
-            className={`p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-violet-500/20 text-violet-400' : 'text-gray-500 hover:text-gray-300'}`}
+            className={`p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-violet-500/20 text-violet-400' : 'text-gray-400 hover:text-gray-200'}`}
           >
             <List size={16} />
           </button>
@@ -122,7 +177,7 @@ export default function LibraryPage() {
             className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all border ${
               activeFilter === tab.id
                 ? 'bg-violet-500/10 text-violet-400 border-violet-500/30'
-                : 'text-gray-500 border-gray-800/50 hover:text-gray-300'
+                : 'text-gray-400 border-gray-800/50 hover:text-gray-200'
             }`}
           >
             {tab.icon}
@@ -134,7 +189,7 @@ export default function LibraryPage() {
 
       {/* Sort */}
       <div className="flex items-center gap-2">
-        <span className="text-xs text-gray-500">Sort by:</span>
+        <span className="text-xs text-gray-400">Sort by:</span>
         <select
           value={sortBy}
           aria-label="Sort by"
@@ -156,7 +211,118 @@ export default function LibraryPage() {
         </button>
       </div>
 
+      {/* Bulk Actions */}
+      {selectedIds.length > 0 && (
+        <Card className="p-3">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <CheckSquare size={16} className="text-violet-400 flex-shrink-0" />
+              <span className="text-sm text-gray-300">
+                {selectedIds.length} selected
+              </span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
+              <button
+                type="button"
+                onClick={toggleSelectAllVisible}
+                className="px-3 py-1.5 bg-gray-800/70 border border-gray-700/50 rounded-lg text-xs text-gray-300 hover:text-white transition-colors"
+              >
+                {allVisibleSelected ? 'Deselect Visible' : 'Select Visible'}
+              </button>
+
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setOpenBulkStatusMenu((current) => !current)}
+                  className="flex items-center justify-between gap-2 min-w-[145px] px-3 py-1.5 bg-gray-800/70 border border-gray-700/50 rounded-lg text-xs text-gray-300 hover:text-white hover:border-gray-600 focus:outline-none focus:border-violet-500/50 transition-colors"
+                  aria-haspopup="listbox"
+                  aria-expanded={openBulkStatusMenu}
+                >
+                  <span>Change status</span>
+                  <ChevronDown
+                    size={13}
+                    className={`text-gray-400 transition-transform ${openBulkStatusMenu ? 'rotate-180' : ''}`}
+                  />
+                </button>
+
+                {openBulkStatusMenu && (
+                  <div className="absolute right-0 top-full mt-1 z-40 min-w-[145px] overflow-hidden rounded-lg border border-gray-700/70 bg-[#1a1a24] shadow-xl">
+                    {(['READING', 'PLAN_TO_READ', 'COMPLETED', 'DROPPED', 'PAUSED'] as const).map((status) => (
+                      <button
+                        key={status}
+                        type="button"
+                        onClick={() => {
+                          handleBulkStatus(status);
+                          setOpenBulkStatusMenu(false);
+                        }}
+                        className="w-full px-3 py-2 text-left text-xs font-medium text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+                      >
+                        {getLibraryStatusLabel(status)}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setConfirmBulkRemove(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded-lg text-xs text-red-400 hover:bg-red-500/20 transition-colors"
+              >
+                <Trash2 size={13} />
+                Remove
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSelectedIds([])}
+                className="p-1.5 text-gray-400 hover:text-white transition-colors"
+                aria-label="Clear selection"
+                title="Clear selection"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* Content */}
+      {confirmBulkRemove && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <Card className="p-6 max-w-sm w-full">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center">
+                <Trash2 size={18} className="text-red-400" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white">Remove selected manga?</h3>
+                <p className="text-xs text-gray-400">
+                  This will remove {selectedIds.length} {selectedIds.length === 1 ? 'title' : 'titles'} and their saved progress.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmBulkRemove(false)}
+                className="flex-1 px-4 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-sm font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleBulkRemove}
+                className="flex-1 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-medium transition-colors"
+              >
+                Remove
+              </button>
+            </div>
+          </Card>
+        </div>
+      )}
+
       {filteredItems.length === 0 ? (
         items.length === 0 ? (
           <EmptyState
@@ -182,7 +348,20 @@ export default function LibraryPage() {
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
           {filteredItems.map((item) => (
-            <div key={item.mangaId} className="group">
+            <div key={item.mangaId} className="group relative">
+              <button
+                type="button"
+                onClick={() => toggleSelected(item.mangaId)}
+                className={`absolute top-2 left-2 z-20 w-6 h-6 rounded-md border flex items-center justify-center transition-all ${
+                  selectedIds.includes(item.mangaId)
+                    ? 'bg-violet-500 border-violet-400 text-white shadow-lg'
+                    : 'bg-black/70 border-white/40 text-transparent hover:text-gray-300 hover:border-white/70'
+                }`}
+                aria-label={`${selectedIds.includes(item.mangaId) ? 'Deselect' : 'Select'} ${item.title}`}
+                aria-pressed={selectedIds.includes(item.mangaId)}
+              >
+                <CheckCircle size={14} />
+              </button>
               <Link to={`/manga/${item.mangaId}`} className="block">
                 <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-gray-800 mb-2">
                   <img
@@ -190,7 +369,9 @@ export default function LibraryPage() {
                     alt={item.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
-                  <div className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-medium border ${getLibraryStatusColor(item.status)}`}>
+                  <div
+                    className={`absolute top-2 right-2 z-10 px-2.5 py-1 rounded-full text-[10px] leading-none font-semibold border backdrop-blur-md shadow-lg whitespace-nowrap ${getLibraryBadgeClass(item.status)}`}
+                  >
                     {getLibraryStatusLabel(item.status)}
                   </div>
                   {item.totalChapters && (
@@ -205,7 +386,7 @@ export default function LibraryPage() {
                 <h3 className="text-sm font-medium text-gray-200 line-clamp-2 group-hover:text-violet-400 transition-colors">
                   {item.title}
                 </h3>
-                <p className="text-xs text-gray-500 mt-0.5">
+                <p className="text-xs text-gray-400 mt-0.5">
                   Ch. {item.currentChapter}{item.totalChapters ? ` / ${item.totalChapters}` : ''}
                 </p>
               </Link>
@@ -216,30 +397,83 @@ export default function LibraryPage() {
               >
                 {isFinished(item) ? 'Completed' : 'Mark Next'}
               </button>
+
+              <div className="relative mt-2">
+                <button
+                  type="button"
+                  onClick={() => setOpenStatusMenu((current) => current === item.mangaId ? null : item.mangaId)}
+                  className="w-full flex items-center justify-between gap-2 px-2.5 py-1.5 bg-gray-800/70 border border-gray-700/60 rounded-lg text-xs text-gray-300 hover:text-white hover:border-gray-600 focus:outline-none focus:border-violet-500/50 transition-colors"
+                  aria-haspopup="listbox"
+                  aria-expanded={openStatusMenu === item.mangaId}
+                  aria-label={`Change status for ${item.title}`}
+                >
+                  <span className="truncate">{getLibraryStatusLabel(item.status)}</span>
+                  <ChevronDown
+                    size={13}
+                    className={`flex-shrink-0 text-gray-400 transition-transform ${openStatusMenu === item.mangaId ? 'rotate-180' : ''}`}
+                  />
+                </button>
+
+                {openStatusMenu === item.mangaId && (
+                  <div className="absolute left-0 right-0 top-full mt-1 z-30 overflow-hidden rounded-lg border border-gray-700/70 bg-[#1a1a24] shadow-xl">
+                    {(['READING', 'PLAN_TO_READ', 'COMPLETED', 'DROPPED', 'PAUSED'] as const).map((status) => (
+                      <button
+                        key={status}
+                        type="button"
+                        onClick={() => {
+                          updateStatus(item.mangaId, status);
+                          setOpenStatusMenu(null);
+                        }}
+                        className={`w-full px-3 py-2 text-left text-xs font-medium transition-colors ${
+                          item.status === status
+                            ? 'bg-violet-500/10 text-violet-300'
+                            : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                        }`}
+                      >
+                        {getLibraryStatusLabel(status)}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </div>
       ) : (
         <div className="space-y-2">
           {filteredItems.map((item) => (
-            <Card key={item.mangaId} className="p-3 hover:border-violet-500/30 transition-all">
-              <div className="flex items-center gap-3">
-                <Link
-                  to={`/manga/${item.mangaId}`}
-                  className="flex items-center gap-3 flex-1 min-w-0 group"
-                >
-                  <div className="w-12 h-16 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0">
-                    <img src={item.cover} alt={item.title} className="w-full h-full object-cover" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-medium text-gray-200 line-clamp-1 group-hover:text-violet-400 transition-colors">
-                      {item.title}
-                    </h3>
+            <div key={item.mangaId} className="flex items-stretch gap-2">
+              <button
+                type="button"
+                onClick={() => toggleSelected(item.mangaId)}
+                className={`w-9 flex-shrink-0 rounded-xl border flex items-center justify-center transition-all ${
+                  selectedIds.includes(item.mangaId)
+                    ? 'bg-violet-500/10 border-violet-500/40 text-violet-400'
+                    : 'bg-gray-900/50 border-gray-700/60 text-gray-400 hover:text-white'
+                }`}
+                aria-label={`${selectedIds.includes(item.mangaId) ? 'Deselect' : 'Select'} ${item.title}`}
+                aria-pressed={selectedIds.includes(item.mangaId)}
+              >
+                <CheckCircle size={15} />
+              </button>
+              <Card className="p-3 flex-1 min-w-0 hover:border-violet-500/30 transition-all">
+                <div className="flex items-center gap-3">
+                  <Link
+                    to={`/manga/${item.mangaId}`}
+                    className="flex items-center gap-3 flex-1 min-w-0 group"
+                  >
+                    <div className="w-12 h-16 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0">
+                      <img src={item.cover} alt={item.title} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-medium text-gray-200 line-clamp-1 group-hover:text-violet-400 transition-colors">
+                        {item.title}
+                      </h3>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant={item.status === 'READING' ? 'info' : item.status === 'COMPLETED' ? 'success' : 'default'}>
                         {getLibraryStatusLabel(item.status)}
                       </Badge>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-gray-400">
                         Ch. {item.currentChapter}{item.totalChapters ? ` / ${item.totalChapters}` : ''}
                       </span>
                     </div>
@@ -260,17 +494,18 @@ export default function LibraryPage() {
                     {isFinished(item) ? 'Completed' : `Next: Ch. ${item.nextChapter}`}
                   </p>
                 </div>
-              </div>
-              <div className="mt-2 flex justify-end">
-                <button
-                  onClick={() => updateProgress(item.mangaId, item.currentChapter + 1)}
-                  disabled={isFinished(item)}
-                  className="px-3 py-1.5 bg-violet-500/10 text-violet-400 rounded-lg text-xs font-medium hover:bg-violet-500/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-violet-500/10"
-                >
-                  {isFinished(item) ? 'Completed' : 'Mark Next Chapter'}
-                </button>
-              </div>
-            </Card>
+                </div>
+                <div className="mt-2 flex justify-end">
+                  <button
+                    onClick={() => updateProgress(item.mangaId, item.currentChapter + 1)}
+                    disabled={isFinished(item)}
+                    className="px-3 py-1.5 bg-violet-500/10 text-violet-400 rounded-lg text-xs font-medium hover:bg-violet-500/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-violet-500/10"
+                  >
+                    {isFinished(item) ? 'Completed' : 'Mark Next Chapter'}
+                  </button>
+                </div>
+              </Card>
+            </div>
           ))}
         </div>
       )}

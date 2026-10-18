@@ -52,7 +52,7 @@ export default function ProfilePage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-white">Profile</h1>
-        <p className="text-gray-500 text-sm mt-1">Your reading statistics and overview</p>
+        <p className="text-gray-400 text-sm mt-1">Your reading statistics and overview</p>
       </div>
 
       {/* Profile Card */}
@@ -63,7 +63,7 @@ export default function ProfilePage() {
           </div>
           <div>
             <h2 className="text-xl font-bold text-white">Manga Reader</h2>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-400">
               Tracking {totalLibrary} manga • {totalChaptersRead} chapters read
             </p>
           </div>
@@ -78,7 +78,7 @@ export default function ProfilePage() {
               <stat.icon size={18} className={stat.color} />
             </div>
             <p className="text-xl font-bold text-white">{stat.value}</p>
-            <p className="text-xs text-gray-500 mt-1">{stat.label}</p>
+            <p className="text-xs text-gray-400 mt-1">{stat.label}</p>
           </Card>
         ))}
       </div>
@@ -102,7 +102,7 @@ export default function ProfilePage() {
                     style={{ width: `${totalLibrary > 0 ? (item.count / totalLibrary) * 100 : 0}%` }}
                   />
                 </div>
-                <span className="text-xs text-gray-500 w-8 text-right">{item.count}</span>
+                <span className="text-xs text-gray-400 w-8 text-right">{item.count}</span>
               </div>
             ))}
           </div>
@@ -129,7 +129,7 @@ export default function ProfilePage() {
                     <span className="font-medium">{activity.mangaTitle}</span>
                     {activity.chapter && ` — Ch. ${activity.chapter}`}
                   </p>
-                  <p className="text-[10px] text-gray-600">
+                  <p className="text-[10px] text-gray-400">
                     {new Date(activity.timestamp).toLocaleDateString()}
                   </p>
                 </div>

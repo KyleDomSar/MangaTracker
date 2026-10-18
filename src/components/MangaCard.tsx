@@ -1,9 +1,20 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Star, BookOpen } from 'lucide-react';
-import type { Manga } from '../models/types';
+import type { Manga, LibraryStatus } from '../models/types';
 import { useLibraryStore } from '../store/stores';
-import { getLibraryStatusColor } from '../store/stores';
+
+function getStatusBadgeClass(status: LibraryStatus) {
+  const classes = {
+    READING: 'text-blue-300 border-blue-400/50 bg-[#0a0a0f]/90',
+    COMPLETED: 'text-green-300 border-green-400/50 bg-[#0a0a0f]/90',
+    PLAN_TO_READ: 'text-purple-300 border-purple-400/50 bg-[#0a0a0f]/90',
+    DROPPED: 'text-red-300 border-red-400/50 bg-[#0a0a0f]/90',
+    PAUSED: 'text-yellow-300 border-yellow-400/50 bg-[#0a0a0f]/90',
+  } as const;
+
+  return classes[status];
+}
 
 interface MangaCardProps {
   manga: Manga;
@@ -50,8 +61,18 @@ export default function MangaCard({ manga, size = 'md', fullWidth = false }: Man
         
         {/* Status badge */}
         {isInLibrary && libraryItem && (
-          <div className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-medium border ${getLibraryStatusColor(libraryItem.status)}`}>
-            {libraryItem.status === 'READING' ? 'Reading' : libraryItem.status === 'COMPLETED' ? 'Done' : libraryItem.status === 'PLAN_TO_READ' ? 'Plan' : libraryItem.status}
+          <div
+            className={`absolute top-2 right-2 z-10 px-2.5 py-1 rounded-full text-[10px] leading-none font-semibold border backdrop-blur-md shadow-lg whitespace-nowrap ${getStatusBadgeClass(libraryItem.status)}`}
+          >
+            {libraryItem.status === 'PLAN_TO_READ'
+              ? 'Plan to Read'
+              : libraryItem.status === 'READING'
+                ? 'Reading'
+                : libraryItem.status === 'COMPLETED'
+                  ? 'Completed'
+                  : libraryItem.status === 'DROPPED'
+                    ? 'Dropped'
+                    : 'Paused'}
           </div>
         )}
 
@@ -80,7 +101,7 @@ export default function MangaCard({ manga, size = 'md', fullWidth = false }: Man
           {title}
         </h3>
         {manga.format && (
-          <p className="text-xs text-gray-500 mt-0.5">{manga.format}</p>
+          <p className="text-xs text-gray-400 mt-0.5">{manga.format}</p>
         )}
       </div>
     </Link>

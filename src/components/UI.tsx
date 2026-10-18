@@ -44,7 +44,7 @@ export function EmptyState({ icon, title, description, action }: EmptyStateProps
         {icon || <BookOpen size={28} className="text-gray-600" />}
       </div>
       <h3 className="text-lg font-semibold text-gray-300 mb-2">{title}</h3>
-      <p className="text-sm text-gray-500 max-w-sm mb-6">{description}</p>
+      <p className="text-sm text-gray-400 max-w-sm mb-6">{description}</p>
       {action}
     </div>
   );
@@ -78,7 +78,7 @@ export function ErrorState({ message, onRetry }: ErrorStateProps) {
         <AlertCircle size={28} className="text-red-400" />
       </div>
       <h3 className="text-lg font-semibold text-gray-300 mb-2">Something went wrong</h3>
-      <p className="text-sm text-gray-500 max-w-sm mb-6">{message}</p>
+      <p className="text-sm text-gray-400 max-w-sm mb-6">{message}</p>
       {onRetry && (
         <button
           onClick={onRetry}
