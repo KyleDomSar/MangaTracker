@@ -86,22 +86,30 @@ export default function MangaDetails() {
       return;
     }
 
+    let cancelled = false;
+
     async function loadManga() {
       setLoading(true);
       setError(null);
       try {
         const data = await getMangaDetails(mangaId);
+        if (cancelled) return;
         setManga(data);
         if (useLibraryStore.getState().isInLibrary(mangaId)) {
           initProgress(mangaId, data.chapters);
         }
       } catch (err) {
+        if (cancelled) return;
         setError(err instanceof Error ? err.message : 'Failed to load manga');
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
     loadManga();
+
+    return () => {
+      cancelled = true;
+    };
   }, [id, mangaId, initProgress, reloadToken]);
 
   // Close the status menu on outside click or Escape.
@@ -123,11 +131,16 @@ export default function MangaDetails() {
     };
   }, [showStatusMenu]);
 
-  // Reset the chapter window per manga, keeping the current chapter visible.
+  // Reset per-manga state whenever the route id changes, keeping the current
+  // chapter visible and preventing data from the previous manga (chapter
+  // total, source, open menu) from leaking into the new one.
   useEffect(() => {
     const lastRead = useProgressStore.getState().progress[mangaId]?.lastReadChapter ?? 0;
     setVisibleChapters(Math.max(50, Math.ceil(lastRead / 50) * 50));
     setHideRead(false);
+    setChapterTotal(null);
+    setChapterSource(null);
+    setShowStatusMenu(false);
   }, [mangaId]);
 
   const lastReadChapter = progress?.lastReadChapter ?? 0;
@@ -324,19 +337,17 @@ export default function MangaDetails() {
                     <button
                       onClick={() => setShowStatusMenu(!showStatusMenu)}
                       aria-expanded={showStatusMenu}
-                      aria-haspopup="true"
                       className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition-all ${getLibraryStatusColor(libraryItem!.status)}`}
                     >
                       {getLibraryStatusLabel(libraryItem!.status)}
                       <ChevronRight size={14} className={`transition-transform ${showStatusMenu ? 'rotate-90' : ''}`} />
                     </button>
                     {showStatusMenu && (
-                      <div role="menu" className="absolute top-full left-0 mt-1 bg-[#1a1a24] border border-gray-800 rounded-xl overflow-hidden z-20 shadow-xl">
+                      <div className="absolute top-full left-0 mt-1 bg-[#1a1a24] border border-gray-800 rounded-xl overflow-hidden z-20 shadow-xl">
                         {statusOptions.map((status) => (
                           <button
                             key={status}
                             onClick={() => handleStatusChange(status)}
-                            role="menuitem"
                             className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-gray-800/50 transition-colors"
                           >
                             {getLibraryStatusLabel(status)}
