@@ -1,12 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpen, CheckCircle, Clock, AlertTriangle, Library, TrendingUp, Award } from 'lucide-react';
-import { useLibraryStore, useActivityStore } from '../store/stores';
+import { useLibraryStore, useActivityStore, useProgressStore } from '../store/stores';
 import { Card, ProgressBar } from '../components/UI';
 
 export default function ProfilePage() {
   const items = useLibraryStore((s) => s.items);
   const activities = useActivityStore((s) => s.activities);
+  const progressMap = useProgressStore((s) => s.progress);
 
   const currentlyReading = items.filter((i) => i.status === 'READING').length;
   const completed = items.filter((i) => i.status === 'COMPLETED').length;
@@ -14,8 +15,11 @@ export default function ProfilePage() {
   const dropped = items.filter((i) => i.status === 'DROPPED').length;
   const totalLibrary = items.length;
 
-  // Calculate total chapters read
-  const totalChaptersRead = items.reduce((sum, item) => sum + item.currentChapter, 0);
+  // Same source as the Dashboard so the two pages always agree.
+  const totalChaptersRead = Object.values(progressMap).reduce(
+    (sum, progress) => sum + progress.chaptersRead.length,
+    0
+  );
 
   // Calculate reading streak (days with activity)
   const uniqueDays = new Set(
@@ -25,7 +29,12 @@ export default function ProfilePage() {
   // Average progress
   const itemsWithProgress = items.filter((i) => i.totalChapters && i.totalChapters > 0);
   const avgProgress = itemsWithProgress.length > 0
-    ? Math.round(itemsWithProgress.reduce((sum, i) => sum + (i.currentChapter / (i.totalChapters || 1)) * 100, 0) / itemsWithProgress.length)
+    ? Math.round(
+        itemsWithProgress.reduce(
+          (sum, i) => sum + Math.min(100, (i.currentChapter / (i.totalChapters || 1)) * 100),
+          0
+        ) / itemsWithProgress.length
+      )
     : 0;
 
   const stats = [
