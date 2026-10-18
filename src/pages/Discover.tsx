@@ -20,14 +20,17 @@ export default function Discover() {
   const [selectedSort, setSelectedSort] = useState('POPULARITY_DESC');
   const [showFilters, setShowFilters] = useState(false);
   const [reloadToken, setReloadToken] = useState(0);
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
   const requestIdRef = useRef(0);
 
-  // Debounced search
+  // Debounced search: only the settled query triggers requests.
   const debouncedSearch = useCallback((query: string) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      if (query.trim()) {
+      const trimmed = query.trim();
+      if (trimmed) {
+        setDebouncedQuery(trimmed);
         setActiveTab('search');
         setPage(1);
       }
@@ -43,8 +46,8 @@ export default function Discover() {
       setError(null);
       try {
         let result;
-        if (activeTab === 'search' && searchQuery.trim()) {
-          result = await searchManga(searchQuery, page, 24, selectedGenres, selectedStatus, selectedSort);
+        if (activeTab === 'search' && debouncedQuery) {
+          result = await searchManga(debouncedQuery, page, 24, selectedGenres, selectedStatus, selectedSort);
         } else if (activeTab === 'latest') {
           result = await getLatest(page, 24, selectedGenres, selectedStatus, selectedSort);
         } else if (activeTab === 'ongoing') {
@@ -72,7 +75,7 @@ export default function Discover() {
     }
 
     loadData();
-  }, [activeTab, page, searchQuery, selectedGenres, selectedStatus, selectedSort, reloadToken]);
+  }, [activeTab, page, debouncedQuery, selectedGenres, selectedStatus, selectedSort, reloadToken]);
 
   const clearDebounce = () => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -84,6 +87,7 @@ export default function Discover() {
       // Clear any pending timer so a stale query cannot re-open the
       // search tab after the input has been emptied.
       clearDebounce();
+      setDebouncedQuery('');
       setManga([]);
       setActiveTab('popular');
       setPage(1);
@@ -94,6 +98,7 @@ export default function Discover() {
 
   const handleClearSearch = () => {
     clearDebounce();
+    setDebouncedQuery('');
     setSearchQuery('');
     setManga([]);
     setActiveTab('popular');
@@ -114,6 +119,7 @@ export default function Discover() {
     // Switching tabs cancels a pending debounced search and clears the
     // box, so the results always match what the UI shows.
     clearDebounce();
+    setDebouncedQuery('');
     setSearchQuery('');
     setManga([]);
     setActiveTab(tab);
