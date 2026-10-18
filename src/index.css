@@ -119,7 +119,9 @@ body {
   overflow: hidden;
 }
 
-/* Accent themes — override the violet/indigo palette used across the app. */
+/* Accent themes — override the violet/indigo palette used across the app.
+   The default theme (violet) has no block: it uses Tailwind's base
+   --color-violet-* and --color-indigo-* variables from :root. */
 :root[data-theme='blue'] {
   --color-violet-300: oklch(80.9% 0.105 251.813);
   --color-violet-400: oklch(70.7% 0.165 254.624);

@@ -9,6 +9,7 @@ import {
   resolveTotalChapters,
 } from './progressLogic';
 import { useToastStore } from './toastStore';
+import { normalizeTheme } from '../theme/themes';
 
 // Generate unique IDs
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -340,6 +341,20 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: 'manhwa-settings',
+      // Normalize the persisted theme on every hydration so legacy values
+      // (e.g. the old 'dark' default) never reach the UI or the DOM.
+      merge: (persisted, current) => {
+        const persistedState = persisted as Partial<SettingsState> | undefined;
+        return {
+          ...current,
+          ...persistedState,
+          settings: {
+            ...current.settings,
+            ...persistedState?.settings,
+            theme: normalizeTheme(persistedState?.settings?.theme),
+          },
+        };
+      },
     }
   )
 );
