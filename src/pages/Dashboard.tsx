@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, TrendingUp, CheckCircle, Clock, AlertTriangle, Library, ArrowRight, Sparkles, Target, BarChart3 } from 'lucide-react';
+import { BookOpen, TrendingUp, CheckCircle, Clock, AlertTriangle, Library, ArrowRight, Sparkles, Target, BarChart3, Compass } from 'lucide-react';
 import { useLibraryStore, useActivityStore, useProgressStore, getActivityLabel } from '../store/stores';
 import { Card, SectionHeader, ProgressBar, EmptyState, EmptyIcons } from '../components/UI';
 import MangaCard, { MangaCardSkeleton } from '../components/MangaCard';
@@ -15,20 +15,32 @@ export default function Dashboard() {
 
   const [trending, setTrending] = React.useState<Manga[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [trendingError, setTrendingError] = React.useState<string | null>(null);
+  const [trendingReload, setTrendingReload] = React.useState(0);
 
   React.useEffect(() => {
+    let cancelled = false;
+
     async function loadTrending() {
+      setLoading(true);
+      setTrendingError(null);
       try {
         const result = await getPopular(1, 8);
-        setTrending(result.manga);
-      } catch {
-        // Silent fail for dashboard
+        if (!cancelled) setTrending(result.manga);
+      } catch (error) {
+        if (!cancelled) {
+          setTrendingError(error instanceof Error ? error.message : 'Failed to load popular titles');
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
+
     loadTrending();
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [trendingReload]);
 
   // Stats
   const currentlyReading = items.filter((i) => i.status === 'READING').length;
@@ -271,12 +283,26 @@ export default function Dashboard() {
             </Link>
           }
         />
-        <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
-          {loading
-            ? Array.from({ length: 6 }).map((_, i) => <MangaCardSkeleton key={i} />)
-            : trending.map((manga) => <MangaCard key={manga.id} manga={manga} />)
-          }
-        </div>
+        {trendingError ? (
+          <Card className="p-4 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-gray-400">
+              Popular titles could not be loaded right now.
+            </p>
+            <button
+              onClick={() => setTrendingReload((token) => token + 1)}
+              className="flex-shrink-0 px-3 py-1.5 bg-violet-500/10 text-violet-400 rounded-lg text-xs font-medium hover:bg-violet-500/20 transition-colors"
+            >
+              Try Again
+            </button>
+          </Card>
+        ) : (
+          <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
+            {loading
+              ? Array.from({ length: 6 }).map((_, i) => <MangaCardSkeleton key={i} />)
+              : trending.map((manga) => <MangaCard key={manga.id} manga={manga} />)
+            }
+          </div>
+        )}
       </div>
 
       {/* Recent Activity */}
@@ -317,14 +343,5 @@ export default function Dashboard() {
         </div>
       )}
     </div>
-  );
-}
-
-function Compass({ size, className }: { size: number; className?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <circle cx="12" cy="12" r="10" />
-      <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
-    </svg>
   );
 }
