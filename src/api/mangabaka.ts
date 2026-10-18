@@ -48,6 +48,9 @@ export async function getChapterInfo(manga: Pick<Manga, 'id' | 'title' | 'synony
 
   const request = (async () => {
     const queries = [manga.title, ...manga.synonyms].filter(Boolean);
+    // Only remember "no chapter count found" when at least one search
+    // actually completed; a fully failed lookup should be retried next time.
+    let completedSearch = false;
     for (const query of queries) {
       const searchQuery =
         typeof query === 'string'
@@ -62,6 +65,7 @@ export async function getChapterInfo(manga: Pick<Manga, 'id' | 'title' | 'synony
           REQUEST_TIMEOUT
         );
         if (!response.ok) continue;
+        completedSearch = true;
         const json = (await response.json()) as SearchResponse;
         const items = json.data ?? json.results ?? [];
         const matches = [...items].sort((a, b) => score(searchQuery, a) - score(searchQuery, b));
@@ -75,7 +79,9 @@ export async function getChapterInfo(manga: Pick<Manga, 'id' | 'title' | 'synony
         // Try the next known title.
       }
     }
-    cache.set(manga.id, { totalChapters: null, timestamp: Date.now() });
+    if (completedSearch) {
+      cache.set(manga.id, { totalChapters: null, timestamp: Date.now() });
+    }
     return null;
   })();
 
