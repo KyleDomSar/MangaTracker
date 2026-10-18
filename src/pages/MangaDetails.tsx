@@ -138,6 +138,13 @@ export default function MangaDetails() {
     }
   }, [lastReadChapter, visibleChapters]);
 
+  // Reflect the manga title in the browser tab once loaded.
+  useEffect(() => {
+    if (!manga) return;
+    const pageTitle = manga.title.english || manga.title.romaji;
+    document.title = `${pageTitle} · MangaTracker`;
+  }, [manga]);
+
   const handleAddToLibrary = (status: LibraryStatus = defaultLibraryStatus) => {
     if (!manga) return;
     addItem({
