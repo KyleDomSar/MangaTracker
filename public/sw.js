@@ -1,4 +1,4 @@
-const CACHE_NAME = "mangatracker-v1";
+const CACHE_NAME = "mangatracker-v2";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -30,10 +30,23 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(
     fetch(request)
       .then((response) => {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+        // Only cache successful responses; never serve a cached 404/500.
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+        }
         return response;
       })
-      .catch(() => caches.match(request).then((cached) => cached || caches.match("/")))
+      .catch(async () => {
+        const cached = await caches.match(request);
+        if (cached) return cached;
+        // Offline fallback: only navigations get the cached shell. Asset
+        // requests must fail cleanly instead of receiving HTML back.
+        if (request.mode === "navigate") {
+          const shell = await caches.match("/");
+          if (shell) return shell;
+        }
+        return Response.error();
+      })
   );
 });
