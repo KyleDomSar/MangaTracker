@@ -82,25 +82,27 @@ export const useLibraryStore = create<LibraryState>()(
       },
       syncProgress: (mangaId, progress) => {
         set((state) => ({
-          items: state.items.map((i) =>
-            i.mangaId === mangaId
-              ? {
-                  ...i,
-                  currentChapter: progress.currentChapter,
-                  lastReadChapter: progress.lastReadChapter,
-                  nextChapter: progress.nextChapter,
-                  lastReadDate: progress.lastReadDate,
-                  totalChapters: progress.totalChapters,
-                  lastUpdated: new Date().toISOString(),
-                  status:
-                    progress.totalChapters !== null && progress.currentChapter >= progress.totalChapters
-                      ? 'COMPLETED'
-                      : i.status === 'COMPLETED'
-                        ? 'READING'
-                        : i.status,
-                }
-              : i
-          ),
+          items: state.items.map((i) => {
+            if (i.mangaId !== mangaId) return i;
+            // Never erase a known total with a missing one; a genuinely
+            // different count still refreshes it.
+            const totalChapters = resolveTotalChapters(i.totalChapters, progress.totalChapters);
+            return {
+              ...i,
+              currentChapter: progress.currentChapter,
+              lastReadChapter: progress.lastReadChapter,
+              nextChapter: progress.nextChapter,
+              lastReadDate: progress.lastReadDate,
+              totalChapters,
+              lastUpdated: new Date().toISOString(),
+              status:
+                totalChapters !== null && progress.currentChapter >= totalChapters
+                  ? 'COMPLETED'
+                  : i.status === 'COMPLETED'
+                    ? 'READING'
+                    : i.status,
+            };
+          }),
         }));
       },
       updateTotalChapters: (mangaId, totalChapters) => {
