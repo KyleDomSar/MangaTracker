@@ -88,15 +88,23 @@ export default function MangaCard({ manga, size = 'md', fullWidth = false }: Man
 }
 
 // Skeleton card for loading states
-export function MangaCardSkeleton({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
+export function MangaCardSkeleton({
+  size = 'md',
+  fullWidth = false,
+}: {
+  size?: 'sm' | 'md' | 'lg';
+  fullWidth?: boolean;
+}) {
   const sizeClasses = {
     sm: 'w-32 min-w-[8rem]',
     md: 'w-40 min-w-[10rem] sm:w-44 sm:min-w-[11rem]',
     lg: 'w-48 min-w-[12rem] sm:w-56 sm:min-w-[14rem]',
   };
 
+  const widthClass = fullWidth ? 'w-full' : `${sizeClasses[size]} flex-shrink-0`;
+
   return (
-    <div className={`${sizeClasses[size]} flex-shrink-0 animate-pulse`}>
+    <div className={`${widthClass} animate-pulse`}>
       <div className="rounded-xl aspect-[3/4] bg-gray-800/50" />
       <div className="mt-2 space-y-1.5">
         <div className="h-4 bg-gray-800/50 rounded w-3/4" />

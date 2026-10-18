@@ -19,6 +19,7 @@ export default function Discover() {
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedSort, setSelectedSort] = useState('POPULARITY_DESC');
   const [showFilters, setShowFilters] = useState(false);
+  const [reloadToken, setReloadToken] = useState(0);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
   const requestIdRef = useRef(0);
 
@@ -71,16 +72,32 @@ export default function Discover() {
     }
 
     loadData();
-  }, [activeTab, page, searchQuery, selectedGenres, selectedStatus, selectedSort]);
+  }, [activeTab, page, searchQuery, selectedGenres, selectedStatus, selectedSort, reloadToken]);
+
+  const clearDebounce = () => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+  };
 
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
-    debouncedSearch(value);
     if (!value.trim()) {
+      // Clear any pending timer so a stale query cannot re-open the
+      // search tab after the input has been emptied.
+      clearDebounce();
       setManga([]);
       setActiveTab('popular');
       setPage(1);
+      return;
     }
+    debouncedSearch(value);
+  };
+
+  const handleClearSearch = () => {
+    clearDebounce();
+    setSearchQuery('');
+    setManga([]);
+    setActiveTab('popular');
+    setPage(1);
   };
 
   const handleTabChange = (tab: Tab) => {
@@ -94,6 +111,10 @@ export default function Discover() {
 
     const defaults = tabDefaults[tab];
 
+    // Switching tabs cancels a pending debounced search and clears the
+    // box, so the results always match what the UI shows.
+    clearDebounce();
+    setSearchQuery('');
     setManga([]);
     setActiveTab(tab);
     setSelectedStatus(defaults.status);
@@ -148,11 +169,13 @@ export default function Discover() {
           value={searchQuery}
           onChange={(e) => handleSearchChange(e.target.value)}
           placeholder="Search manga, manhwa, manhua..."
+          aria-label="Search manga"
           className="w-full pl-11 pr-10 py-3 bg-[#1a1a24] border border-gray-800/50 rounded-xl text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20 transition-all"
         />
         {searchQuery && (
           <button
-            onClick={() => { setSearchQuery(''); setActiveTab('popular'); setPage(1); }}
+            onClick={handleClearSearch}
+            aria-label="Clear search"
             className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-800 rounded-lg transition-colors"
           >
             <X size={16} className="text-gray-500" />
@@ -168,6 +191,7 @@ export default function Discover() {
             <button
               key={tab.id}
               onClick={() => handleTabChange(tab.id)}
+              aria-pressed={activeTab === tab.id}
               className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap flex-shrink-0 transition-all ${
                 activeTab === tab.id
                   ? 'bg-violet-500/20 text-violet-400'
@@ -178,14 +202,16 @@ export default function Discover() {
             </button>
           ))}
           {activeTab === 'search' && (
-            <button className="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap flex-shrink-0 bg-violet-500/20 text-violet-400">
+            <span className="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap flex-shrink-0 bg-violet-500/20 text-violet-400">
               Search
-            </button>
+            </span>
           )}
           </div>
         </div>
         <button
           onClick={() => setShowFilters(!showFilters)}
+          aria-expanded={showFilters}
+          aria-label="Toggle filters"
           className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all border ${
             showFilters || selectedGenres.length > 0 || selectedStatus
               ? 'bg-violet-500/10 text-violet-400 border-violet-500/30'
@@ -213,6 +239,7 @@ export default function Discover() {
                 <button
                   key={genre}
                   onClick={() => toggleGenre(genre)}
+                  aria-pressed={selectedGenres.includes(genre)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all border ${
                     selectedGenres.includes(genre)
                       ? 'bg-violet-500/20 text-violet-400 border-violet-500/30'
@@ -232,6 +259,7 @@ export default function Discover() {
               <div className="relative">
                 <select
                   value={selectedStatus}
+                  aria-label="Filter by status"
                   onChange={(e) => { setManga([]); setSelectedStatus(e.target.value); setPage(1); }}
                   className="appearance-none w-full min-w-0 sm:min-w-[170px] pr-9 pl-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-300 focus:outline-none focus:border-violet-500/50 cursor-pointer"
                 >
@@ -250,6 +278,7 @@ export default function Discover() {
               <div className="relative">
                 <select
                   value={selectedSort}
+                  aria-label="Sort by"
                   onChange={(e) => { setManga([]); setSelectedSort(e.target.value); setPage(1); }}
                   className="appearance-none w-full min-w-[150px] pr-9 pl-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-300 focus:outline-none focus:border-violet-500/50 cursor-pointer"
                 >
@@ -279,11 +308,11 @@ export default function Discover() {
 
       {/* Results */}
       {error ? (
-        <ErrorState message={error} onRetry={() => setPage(page)} />
+        <ErrorState message={error} onRetry={() => setReloadToken((token) => token + 1)} />
       ) : loading ? (
-        <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
           {Array.from({ length: 12 }).map((_, i) => (
-            <MangaCardSkeleton key={i} size="lg" />
+            <MangaCardSkeleton key={i} size="lg" fullWidth />
           ))}
         </div>
       ) : manga.length === 0 ? (
@@ -307,6 +336,7 @@ export default function Discover() {
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
+                aria-label="Previous page"
                 className="p-2 rounded-lg bg-gray-800/50 text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
               >
                 <ChevronLeft size={18} />
@@ -317,6 +347,7 @@ export default function Discover() {
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
+                aria-label="Next page"
                 className="p-2 rounded-lg bg-gray-800/50 text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
               >
                 <ChevronRight size={18} />
