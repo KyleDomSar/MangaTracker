@@ -3,9 +3,13 @@ import { Link } from 'react-router-dom';
 import { Search, Grid3X3, List, BookOpen, CheckCircle, Clock, AlertTriangle, Pause } from 'lucide-react';
 import { useLibraryStore, getLibraryStatusColor, getLibraryStatusLabel } from '../store/stores';
 import { Card, ProgressBar, EmptyState, EmptyIcons, Badge } from '../components/UI';
-import type { LibraryStatus } from '../models/types';
+import type { LibraryItem, LibraryStatus } from '../models/types';
 
 type FilterTab = 'ALL' | LibraryStatus;
+
+function isFinished(item: LibraryItem): boolean {
+  return item.totalChapters !== null && item.currentChapter >= item.totalChapters;
+}
 
 export default function LibraryPage() {
   const items = useLibraryStore((s) => s.items);
@@ -78,12 +82,16 @@ export default function LibraryPage() {
         <div className="flex items-center gap-1 bg-[#1a1a24] p-1 rounded-lg border border-gray-800/50">
           <button
             onClick={() => setViewMode('grid')}
+            aria-label="Grid view"
+            aria-pressed={viewMode === 'grid'}
             className={`p-2 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-violet-500/20 text-violet-400' : 'text-gray-500 hover:text-gray-300'}`}
           >
             <Grid3X3 size={16} />
           </button>
           <button
             onClick={() => setViewMode('list')}
+            aria-label="List view"
+            aria-pressed={viewMode === 'list'}
             className={`p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-violet-500/20 text-violet-400' : 'text-gray-500 hover:text-gray-300'}`}
           >
             <List size={16} />
@@ -99,6 +107,7 @@ export default function LibraryPage() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search your library..."
+          aria-label="Search your library"
           className="w-full pl-10 pr-4 py-2.5 bg-[#1a1a24] border border-gray-800/50 rounded-xl text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-violet-500/50 transition-all"
         />
       </div>
@@ -109,6 +118,7 @@ export default function LibraryPage() {
           <button
             key={tab.id}
             onClick={() => setActiveFilter(tab.id)}
+            aria-pressed={activeFilter === tab.id}
             className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all border ${
               activeFilter === tab.id
                 ? 'bg-violet-500/10 text-violet-400 border-violet-500/30'
@@ -127,6 +137,7 @@ export default function LibraryPage() {
         <span className="text-xs text-gray-500">Sort by:</span>
         <select
           value={sortBy}
+          aria-label="Sort by"
           onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
           className="px-2 py-1 bg-gray-800/50 border border-gray-700/50 rounded-lg text-xs text-gray-300 focus:outline-none"
         >
@@ -199,14 +210,11 @@ export default function LibraryPage() {
                 </p>
               </Link>
               <button
-                onClick={() => {
-                  const next = item.currentChapter + 1;
-                  if (item.totalChapters && next > item.totalChapters) return;
-                  updateProgress(item.mangaId, next);
-                }}
-                className="mt-2 w-full px-2 py-1.5 bg-violet-500/10 text-violet-400 rounded-lg text-xs font-medium hover:bg-violet-500/20 transition-colors"
+                onClick={() => updateProgress(item.mangaId, item.currentChapter + 1)}
+                disabled={isFinished(item)}
+                className="mt-2 w-full px-2 py-1.5 bg-violet-500/10 text-violet-400 rounded-lg text-xs font-medium hover:bg-violet-500/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-violet-500/10"
               >
-                Mark Next
+                {isFinished(item) ? 'Completed' : 'Mark Next'}
               </button>
             </div>
           ))}
@@ -214,13 +222,12 @@ export default function LibraryPage() {
       ) : (
         <div className="space-y-2">
           {filteredItems.map((item) => (
-            <Link
-              key={item.mangaId}
-              to={`/manga/${item.mangaId}`}
-              className="block group"
-            >
-              <Card className="p-3 hover:border-violet-500/30 transition-all">
-                <div className="flex items-center gap-3">
+            <Card key={item.mangaId} className="p-3 hover:border-violet-500/30 transition-all">
+              <div className="flex items-center gap-3">
+                <Link
+                  to={`/manga/${item.mangaId}`}
+                  className="flex items-center gap-3 flex-1 min-w-0 group"
+                >
                   <div className="w-12 h-16 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0">
                     <img src={item.cover} alt={item.title} className="w-full h-full object-cover" />
                   </div>
@@ -241,32 +248,29 @@ export default function LibraryPage() {
                         <ProgressBar value={item.currentChapter} max={item.totalChapters} size="sm" />
                       </div>
                     )}
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const next = item.currentChapter + 1;
-                        if (item.totalChapters && next > item.totalChapters) return;
-                        updateProgress(item.mangaId, next);
-                      }}
-                      className="mt-2 px-3 py-1.5 bg-violet-500/10 text-violet-400 rounded-lg text-xs font-medium hover:bg-violet-500/20 transition-colors"
-                    >
-                      Mark Next Chapter
-                    </button>
                   </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className="text-xs text-gray-500">
-                      {item.lastReadDate
-                        ? new Date(item.lastReadDate).toLocaleDateString()
-                        : 'Never read'}
-                    </p>
-                    <p className="text-xs text-gray-600 mt-0.5">
-                      Next: Ch. {item.nextChapter}
-                    </p>
-                  </div>
+                </Link>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-xs text-gray-500">
+                    {item.lastReadDate
+                      ? new Date(item.lastReadDate).toLocaleDateString()
+                      : 'Never read'}
+                  </p>
+                  <p className="text-xs text-gray-600 mt-0.5">
+                    {isFinished(item) ? 'Completed' : `Next: Ch. ${item.nextChapter}`}
+                  </p>
                 </div>
-              </Card>
-            </Link>
+              </div>
+              <div className="mt-2 flex justify-end">
+                <button
+                  onClick={() => updateProgress(item.mangaId, item.currentChapter + 1)}
+                  disabled={isFinished(item)}
+                  className="px-3 py-1.5 bg-violet-500/10 text-violet-400 rounded-lg text-xs font-medium hover:bg-violet-500/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-violet-500/10"
+                >
+                  {isFinished(item) ? 'Completed' : 'Mark Next Chapter'}
+                </button>
+              </div>
+            </Card>
           ))}
         </div>
       )}
