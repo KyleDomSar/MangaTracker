@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Star, BookOpen, CheckCircle, Plus, Trash2,
@@ -23,6 +23,10 @@ export default function MangaDetails() {
   const [chapterTotal, setChapterTotal] = useState<number | null>(null);
   const [chapterSource, setChapterSource] = useState<string | null>(null);
   const [chapterLookupLoading, setChapterLookupLoading] = useState(false);
+  const [reloadToken, setReloadToken] = useState(0);
+  const [visibleChapters, setVisibleChapters] = useState(50);
+  const [hideRead, setHideRead] = useState(false);
+  const statusMenuRef = useRef<HTMLDivElement>(null);
 
   const items = useLibraryStore((s) => s.items);
   const isInLibrary = items.some((i) => i.mangaId === mangaId);
@@ -98,7 +102,41 @@ export default function MangaDetails() {
       }
     }
     loadManga();
-  }, [id, mangaId, initProgress]);
+  }, [id, mangaId, initProgress, reloadToken]);
+
+  // Close the status menu on outside click or Escape.
+  useEffect(() => {
+    if (!showStatusMenu) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (statusMenuRef.current && !statusMenuRef.current.contains(event.target as Node)) {
+        setShowStatusMenu(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setShowStatusMenu(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showStatusMenu]);
+
+  // Reset the chapter window per manga, keeping the current chapter visible.
+  useEffect(() => {
+    const lastRead = useProgressStore.getState().progress[mangaId]?.lastReadChapter ?? 0;
+    setVisibleChapters(Math.max(50, Math.ceil(lastRead / 50) * 50));
+    setHideRead(false);
+  }, [mangaId]);
+
+  const lastReadChapter = progress?.lastReadChapter ?? 0;
+
+  useEffect(() => {
+    if (lastReadChapter > visibleChapters) {
+      setVisibleChapters(Math.ceil(lastReadChapter / 50) * 50);
+    }
+  }, [lastReadChapter, visibleChapters]);
 
   const handleAddToLibrary = (status: LibraryStatus = defaultLibraryStatus) => {
     if (!manga) return;
@@ -189,7 +227,7 @@ export default function MangaDetails() {
   }
 
   if (loading) return <LoadingSpinner size="lg" />;
-  if (error) return <ErrorState message={error} onRetry={() => window.location.reload()} />;
+  if (error) return <ErrorState message={error} onRetry={() => setReloadToken((token) => token + 1)} />;
   if (!manga) return <ErrorState message="Manga not found" />;
 
   const title = manga.title.english || manga.title.romaji;
@@ -198,6 +236,9 @@ export default function MangaDetails() {
   const trackedMaxChapter = Math.max(...(progress?.chaptersRead || []), progress?.lastReadChapter || 0, 0);
   const chapterListMax = chapterTotal ?? Math.max(trackedMaxChapter + 1, 1);
   const chapters = Array.from({ length: chapterListMax }, (_, i) => i + 1);
+  const readChapterSet = new Set(progress?.chaptersRead ?? []);
+  const filteredChapters = hideRead ? chapters.filter((ch) => !readChapterSet.has(ch)) : chapters;
+  const displayedChapters = filteredChapters.slice(0, visibleChapters);
 
   const statusOptions: LibraryStatus[] = ['READING', 'PLAN_TO_READ', 'COMPLETED', 'DROPPED', 'PAUSED'];
 
@@ -272,20 +313,23 @@ export default function MangaDetails() {
             <div className="flex flex-wrap gap-2 pt-2">
               {isInLibrary ? (
                 <>
-                  <div className="relative">
+                  <div className="relative" ref={statusMenuRef}>
                     <button
                       onClick={() => setShowStatusMenu(!showStatusMenu)}
+                      aria-expanded={showStatusMenu}
+                      aria-haspopup="true"
                       className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition-all ${getLibraryStatusColor(libraryItem!.status)}`}
                     >
                       {getLibraryStatusLabel(libraryItem!.status)}
                       <ChevronRight size={14} className={`transition-transform ${showStatusMenu ? 'rotate-90' : ''}`} />
                     </button>
                     {showStatusMenu && (
-                      <div className="absolute top-full left-0 mt-1 bg-[#1a1a24] border border-gray-800 rounded-xl overflow-hidden z-20 shadow-xl">
+                      <div role="menu" className="absolute top-full left-0 mt-1 bg-[#1a1a24] border border-gray-800 rounded-xl overflow-hidden z-20 shadow-xl">
                         {statusOptions.map((status) => (
                           <button
                             key={status}
                             onClick={() => handleStatusChange(status)}
+                            role="menuitem"
                             className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-gray-800/50 transition-colors"
                           >
                             {getLibraryStatusLabel(status)}
@@ -434,7 +478,7 @@ export default function MangaDetails() {
 
       {/* Chapter List */}
       <Card className="p-5">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between gap-3 mb-4">
           <h3 className="text-sm font-bold text-gray-300 flex items-center gap-2">
             <BookOpen size={14} />
             Chapters
@@ -444,9 +488,27 @@ export default function MangaDetails() {
               <span className="text-gray-600 font-normal text-xs">(count unavailable)</span>
             )}
           </h3>
+          <button
+            onClick={() => setHideRead((value) => !value)}
+            aria-pressed={hideRead}
+            className={`flex-shrink-0 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+              hideRead
+                ? 'bg-violet-500/10 text-violet-400 border-violet-500/30'
+                : 'text-gray-400 border-gray-700/50 hover:text-gray-200 hover:border-gray-600'
+            }`}
+          >
+            {hideRead ? 'Show read' : 'Hide read'}
+          </button>
         </div>
         <div className="space-y-1 max-h-96 overflow-y-auto pr-2">
-          {chapters.map((ch) => {
+          {displayedChapters.length === 0 && (
+            <p className="text-sm text-gray-500 px-1 py-2">
+              {hideRead && filteredChapters.length === 0
+                ? 'All chapters are read.'
+                : 'No chapters to show.'}
+            </p>
+          )}
+          {displayedChapters.map((ch) => {
             const isRead = progress?.chaptersRead.includes(ch) || false;
             const isCurrent = progress?.lastReadChapter === ch;
             return (
@@ -459,6 +521,8 @@ export default function MangaDetails() {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => handleMarkChapter(ch, !isRead)}
+                    aria-label={isRead ? `Mark chapter ${ch} as unread` : `Mark chapter ${ch} as read`}
+                    aria-pressed={isRead}
                     className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
                       isRead
                         ? 'bg-violet-500 border-violet-500'
@@ -477,6 +541,14 @@ export default function MangaDetails() {
               </div>
             );
           })}
+          {displayedChapters.length < filteredChapters.length && (
+            <button
+              onClick={() => setVisibleChapters((count) => count + 50)}
+              className="mt-2 w-full px-3 py-2 rounded-lg bg-gray-800/40 text-gray-400 text-xs font-medium hover:text-white hover:bg-gray-800/60 transition-colors"
+            >
+              Show more ({filteredChapters.length - displayedChapters.length} remaining)
+            </button>
+          )}
         </div>
       </Card>
 
