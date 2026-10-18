@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Trash2, AlertTriangle, Info, Database, BookOpen, Activity, ChevronDown } from 'lucide-react';
 import { useLibraryStore, useActivityStore, useSettingsStore, getLibraryStatusLabel } from '../store/stores';
 import { Card } from '../components/UI';
+import { THEMES, normalizeTheme } from '../theme/themes';
 
 export default function SettingsPage() {
   const [confirmClear, setConfirmClear] = useState<string | null>(null);
@@ -14,6 +15,7 @@ export default function SettingsPage() {
   const updateSettings = useSettingsStore((s) => s.updateSettings);
   const libraryCount = useLibraryStore((s) => s.items.length);
   const activityCount = useActivityStore((s) => s.activities.length);
+  const activeTheme = normalizeTheme(settings.theme);
 
   const handleClear = (type: string) => {
     switch (type) {
@@ -142,6 +144,41 @@ export default function SettingsPage() {
       <div>
         <h1 className="text-2xl font-bold text-white">Settings</h1>
         <p className="text-gray-400 text-sm mt-1">Manage your app preferences and data</p>
+      </div>
+
+      {/* Appearance */}
+      <div>
+        <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Appearance</h2>
+        <Card className="p-4">
+          <h3 className="text-sm font-medium text-gray-200">Accent theme</h3>
+          <p className="text-xs text-gray-400 mt-0.5">
+            Choose the accent color used across the app. Saved automatically.
+          </p>
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mt-4">
+            {THEMES.map((theme) => {
+              const isActive = activeTheme === theme.id;
+              return (
+                <button
+                  key={theme.id}
+                  type="button"
+                  onClick={() => updateSettings({ theme: theme.id })}
+                  aria-pressed={isActive}
+                  className={`flex flex-col items-center gap-2 rounded-xl border px-2 py-3 transition-all ${
+                    isActive
+                      ? 'border-violet-500/60 bg-violet-500/10 text-violet-300'
+                      : 'border-gray-800/50 text-gray-400 hover:text-gray-200 hover:border-gray-600'
+                  }`}
+                >
+                  <span
+                    className="w-6 h-6 rounded-full border border-white/10"
+                    style={{ backgroundColor: theme.swatch }}
+                  />
+                  <span className="text-[11px] font-medium">{theme.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </Card>
       </div>
 
       {/* Settings Sections */}
