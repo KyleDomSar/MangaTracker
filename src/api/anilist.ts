@@ -1,4 +1,5 @@
 import type { Manga, MangaStatus, CacheEntry } from '../models/types';
+import { fetchWithTimeout } from './http';
 
 const ANILIST_API = 'https://graphql.anilist.co';
 const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
@@ -289,7 +290,7 @@ function mapMediaToManga(media: Record<string, unknown>): Manga {
 // API client
 async function fetchGraphQL<T>(query: string, variables: Record<string, unknown>): Promise<T> {
   try {
-    const response = await fetch(ANILIST_API, {
+    const response = await fetchWithTimeout(ANILIST_API, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -311,6 +312,9 @@ async function fetchGraphQL<T>(query: string, variables: Record<string, unknown>
     }
     return json.data as T;
   } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('AniList request timed out. Please check your connection and try again.');
+    }
     if (error instanceof Error) {
       throw error;
     }
